@@ -20,6 +20,11 @@ public class Account {
         this.password = password;
         this.online = online;
     }
+
+    public Account(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
     
     public Account(String username, boolean online){
         this.username = username;

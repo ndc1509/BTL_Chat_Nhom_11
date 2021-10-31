@@ -5,8 +5,9 @@
  */
 package client;
 
+import java.awt.event.ActionListener;
+import java.util.List;
 import javax.swing.JOptionPane;
-import javax.swing.Timer;
 import model.Account;
 
 /**
@@ -14,39 +15,12 @@ import model.Account;
  * @author Cuong
  */
 public class LoginView extends javax.swing.JFrame {
-
-    private static final long serialVersionUID = 1L;
-    private static Client client;
-    private static String serverResponse = null;
-    private static String clientResponse = null;
-    private static String errorMsg;
-    private static String errorTitle;
-    private static int loginAttempt = 0;
-    private static int maxLoginAttempt = 10;
-    
-    private static boolean loginFlag;
-    private static String loginUser = "";
-    
-    private static boolean addFlag;
-    
-    private static Timer timerForUsers;
-    private static Timer timerForMsgs;
-    private static Timer timerForGlobal;
-    private static Timer timerForGames;
-    private static Timer timerForMoves;
-    private final static int ONE_SECOND1 = 800;
-    private final static int ONE_SECOND2 = 2000;
-    private final static int TEN_SECOND1 = 1500;
-    private final static int TEN_SECOND2 = 1000;
-    private final static int FIVE_SECOND = 5000;
-    
-    private static int lastchatID = 0;
-    private static int numRequests = 0;
-    private static String selectedUserChat = " ";
+    private ClientController controller;
     /**
      * Creates new form LoginView
      */
-    public LoginView() {
+    public LoginView(ClientController controller) {
+        this.controller = controller;
         initComponents();
     }
 
@@ -88,12 +62,6 @@ public class LoginView extends javax.swing.JFrame {
         jLabel1.setText("Tên đăng nhập");
 
         jLabel2.setText("Mật khẩu");
-
-        txtUsername.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtUsernameActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -212,40 +180,15 @@ public class LoginView extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void txtUsernameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUsernameActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtUsernameActionPerformed
-
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
         // TODO add your handling code here:
         String username = txtUsername.getText();
         String password = txtPassword.getText();
-        System.out.println(username + password);
-        //De trong
         if(username.equals("") || password.equals("")){
-            username = password = "";
-            errorMsg = "Khong duoc de trong";
-            errorTitle = "Dang nhap loi";
-            showMessage();
+            showErrorMessage("Không được để trống", "Đăng nhập lỗi");
             return;
         }
-        //Truyen package
-        clientResponse = packageString("0", username, password);
-        client.sendMsg(clientResponse);
-        //Nhan phan hoi
-        serverResponse = client.receiveMsg();
-        loginFlag = Boolean.valueOf(serverResponse);
-        serverResponse = client.receiveMsg();
-        //loginUser = 
-        log("\nServer phan hoi " + serverResponse);
-        if(loginFlag == true){
-//            MainMenu menu = new MainMenu(new Account(username, password, true)); 
-            MainMenu menu = new MainMenu(new Account(username, true), client);
-            menu.setVisible(true);
-            this.dispose();
-        }
-        //Dang nhap qua 5 lan
-        
+        controller.Login(username, password);
     }//GEN-LAST:event_btnLoginActionPerformed
 
     private void btnRegActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegActionPerformed
@@ -253,92 +196,29 @@ public class LoginView extends javax.swing.JFrame {
         String username = txtNewUsername.getText();
         String password = txtNewPwd.getText();
         String passwordConfirm = txtNewPwdConfirm.getText();
-        
-        if(username.equals("") || password.equals("") || passwordConfirm.equals("")){
-            username = password = passwordConfirm = "";
-            errorMsg = "Khong duoc de trong";
-            errorTitle = "Dang ky loi";
-            showMessage();
+        if(username.equals("") || password.equals("") || passwordConfirm.equals("")){                
+            showErrorMessage("Không được để trống", "Đăng ký lỗi");
             return;
         }
         
         if(!password.equals(passwordConfirm)){
-            username = password = passwordConfirm = "";
-            errorMsg = "Xac nhan mat khau khong dung";
-            errorTitle = "Dang ky loi";
-            showMessage();
+            showErrorMessage("Xác nhận mật khẩu không đúng", "Đăng ký lỗi");
             return;
         }
-        
-        clientResponse = packageString("1", username, password);
-        client.sendMsg(clientResponse);
-        
-        serverResponse = client.receiveMsg();
-        addFlag = Boolean.valueOf(serverResponse);
-        serverResponse = client.receiveMsg();
-        
-        log("\nServer phan hoi " + serverResponse);    
+        controller.Register(username, password, passwordConfirm);
     }//GEN-LAST:event_btnRegActionPerformed
-    
-    public static void showMessage(){
+
+    public void showErrorMessage(String errorMsg, String errorTitle){
         JOptionPane.showMessageDialog(null, errorMsg, errorTitle, JOptionPane.ERROR_MESSAGE);
+    }
+    
+    public void showMessage(String s){
+        JOptionPane.showMessageDialog(null, s);
     }
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
 
-        /* Create and display the form */
-        
-        String hostname = "127.0.0.1";
-        int port = 19750;
- 
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try{
-                    client = new Client(hostname, port);
-                    serverResponse = client.receiveMsg();
-                    log("\nServer phan hoi " + serverResponse);
-                    new LoginView().setVisible(true);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }            
-            }
-        });        
-    }
-    
-    private static void log(String string) {
-        System.out.println(string);
-    }
-    
-    public static String packageString(String...args){
-        String response = "";
-        for (String arg : args) 
-            response += "," + arg;       
-        return response.substring(1);
-    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnLogin;
     private javax.swing.JButton btnReg;
@@ -356,4 +236,20 @@ public class LoginView extends javax.swing.JFrame {
     private javax.swing.JPasswordField txtPassword;
     private javax.swing.JTextField txtUsername;
     // End of variables declaration//GEN-END:variables
+    
+    public Account getAccount(){
+        Account acc = null;
+        String username = txtUsername.getText();
+        String password = txtPassword.getText();
+        acc = new Account(username, password);
+        return acc;
+    }
+    
+    public List<String> getNewAccount(){
+        List<String> list = null;
+        list.add(txtNewUsername.getText());
+        list.add(txtNewPwd.getText());
+        list.add(txtNewPwdConfirm.getText());
+        return list;
+    }
 }
