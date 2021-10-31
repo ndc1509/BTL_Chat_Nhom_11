@@ -41,3 +41,6 @@ Một dạng đa Thread để xử lý nhiều client
 # Tham khảo:
 https://github.com/kevinzakka/game-room/blob/master/src/server.java
 ...
+
+# LƯU Ý:
+- Tạo SQL dump kèm luôn data nhé
