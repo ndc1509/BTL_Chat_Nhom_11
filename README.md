@@ -19,7 +19,7 @@
  - Chat log
  - Còn gì nữa k nhỉ?
 
-* Giải thích Protocol như sau:
+# Giải thích Protocol như sau:
 1) Client -> Server: một string chứa dữ liệu    
 - Ví dụ: ",string1,string2,string3"
 + string1 là mã lệnh để server thực thi (1 login, 2 đăng kí, 3 logout)
@@ -35,9 +35,9 @@
 + Server gửi cờ xác nhận cho client rồi flush luồng printwriter
 + Server gửi thông điệp cho client rồi flush luồng printwriter
 
-* ThreadPool
+# ThreadPool
 Một dạng đa Thread để xử lý nhiều client
 
-Tham khảo:
+# Tham khảo:
 https://github.com/kevinzakka/game-room/blob/master/src/server.java
 ...
