@@ -10,7 +10,7 @@
  - Truyền gửi file
  - Gửi icon/ảnh
  - Video chat
-
+ - Sửa lại cấu trúc project: tách ClientHandler ra khỏi server?
  3) Ý tưởng thêm
  - Thiết lập avatar
  - Mã hóa mật khẩu
