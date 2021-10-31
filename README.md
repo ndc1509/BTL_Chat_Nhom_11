@@ -14,5 +14,7 @@
  3) Ý tưởng thêm
  - Thiết lập avatar
  - Mã hóa mật khẩu
+ - Khóa đăng nhập nếu nhập sai mật khẩu quá 5 lần ?
+    + Khóa dựa trên IP và khóa trong bao lâu ?
  - Chat log
  - Còn gì nữa k nhỉ?
