@@ -163,6 +163,7 @@ public class Server {
                         else
                         {
                             addFlag = false;
+                            log(addFlag.toString());
                             out.println(addFlag.toString());
                             out.flush();
                             out.println("Tao tai khoan khong thanh cong");
@@ -175,10 +176,17 @@ public class Server {
                     }
                     
                 //Logout
-                case (3):
+                case (2):
                     try {
                         String username = params[1];                            
-                        setOffline(username);                            
+                        setOffline(username);
+                        
+                        Boolean logoutFlag = true;
+                       
+                        out.println(logoutFlag.toString());
+                        out.flush();
+                        
+                        log(username + " da ngat ket noi den server");
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e){

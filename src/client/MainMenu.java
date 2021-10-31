@@ -31,10 +31,12 @@ public class MainMenu extends javax.swing.JFrame {
     private static String loginUser = "";
     
     private static boolean addFlag;
-    
+    private static boolean logoutFlag;
     private static int lastchatID = 0;
     private static int numRequests = 0;
     private static String selectedUserChat = " ";
+    
+    private static Account account;
     /**
      * Creates new form View
      */
@@ -42,8 +44,10 @@ public class MainMenu extends javax.swing.JFrame {
         initComponents();
     }
 
-    MainMenu(Account account) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public MainMenu(Account acc, Client client) {
+        this.account = acc;
+        this.client = client;
+        initComponents();
     }
 
     /**
@@ -168,8 +172,23 @@ public class MainMenu extends javax.swing.JFrame {
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
         int input = JOptionPane.showConfirmDialog(null, "Bạn muốn đăng xuất?", "Xác nhận", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if(input == 0){
-            clientResponse = packageString("3", username);
+        if(input == 0){                   
+            try {
+                clientResponse = packageString("2", account.getUsername());
+                client.sendMsg(clientResponse);
+                
+                serverResponse = client.receiveMsg();
+                logoutFlag = Boolean.valueOf(serverResponse);
+                
+                if(logoutFlag){
+                    log("Dong ket noi voi server");
+                    client.stop();
+                    this.dispose();
+                }                
+            } catch (Exception ex) {
+                log("Dong ket noi khong thanh cong");
+                ex.printStackTrace();
+            }            
         }
     }//GEN-LAST:event_btnLogoutActionPerformed
 

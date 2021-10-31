@@ -240,8 +240,9 @@ public class LoginView extends javax.swing.JFrame {
         log("\nServer phan hoi " + serverResponse);
         if(loginFlag == true){
 //            MainMenu menu = new MainMenu(new Account(username, password, true)); 
-            MainMenu menu = new MainMenu();
+            MainMenu menu = new MainMenu(new Account(username, true), client);
             menu.setVisible(true);
+            this.dispose();
         }
         //Dang nhap qua 5 lan
         

@@ -21,6 +21,11 @@ public class Account {
         this.online = online;
     }
     
+    public Account(String username, boolean online){
+        this.username = username;
+        this.online = online;
+    }
+    
     public int getId() {
         return id;
     }
