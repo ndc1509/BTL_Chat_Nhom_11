@@ -72,20 +72,20 @@ public class ServerThreadBUS {
         }
     }
     //gửi cho toàn bộ client trừ cái id, id có thể là id người gửi ??
-//    public void boardCast(int id, String message){  //gửi cho toàn bộ client trừ cái id
-//        for(ThreadServer serverThread : Server.serverThreadBus.getListServerThreads()){
-//            if (serverThread.getClientNumber() == id) {
-//                continue;
-//            } else {
-//                try {
-//                    serverThread.write(message);
-//                } catch (Exception ex) {
-//                    ex.printStackTrace();
-//                }
-//            }
-//        }
-//    }
-    
+    public void boardcast(int id, String message){  //gửi cho toàn bộ client trừ cái id
+        for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
+            if (serverThread.getClientNumber() == id) {
+                continue;
+            } else {
+                try {
+                    serverThread.write(message);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
     public void remove(int id){
         for(int i=0; i<Server.getServerThreadBUS().getLength(); i++){
             if(Server.getServerThreadBUS().getListServerThreads().get(i).getClientNumber() == id){

@@ -20,13 +20,14 @@ import model.Account;
  */
 public class MainMenu extends javax.swing.JFrame {
 
-    private ClientController controller;
+    private Client controller;
     /**
      * Creates new form View
      */
-    public MainMenu(ClientController controller) {
+    public MainMenu(Client controller) {
         this.controller = controller;
         initComponents();
+        this.setVisible(true);
     }
 
     /**
@@ -200,6 +201,7 @@ public class MainMenu extends javax.swing.JFrame {
      */
     
     public void setGlobalList(List<String> list){
+        listGlobal.removeAll();
         DefaultListModel model = new DefaultListModel();
         for(int i=0; i<list.size();i++)
             model.addElement(list.get(i));

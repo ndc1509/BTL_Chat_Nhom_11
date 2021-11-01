@@ -15,11 +15,11 @@ import model.Account;
  * @author Cuong
  */
 public class LoginView extends javax.swing.JFrame {
-    private ClientController controller;
+    private Client controller;
     /**
      * Creates new form LoginView
      */
-    public LoginView(ClientController controller) {
+    public LoginView(Client controller) {
         this.controller = controller;
         initComponents();
     }
@@ -236,20 +236,4 @@ public class LoginView extends javax.swing.JFrame {
     private javax.swing.JPasswordField txtPassword;
     private javax.swing.JTextField txtUsername;
     // End of variables declaration//GEN-END:variables
-    
-    public Account getAccount(){
-        Account acc = null;
-        String username = txtUsername.getText();
-        String password = txtPassword.getText();
-        acc = new Account(username, password);
-        return acc;
-    }
-    
-    public List<String> getNewAccount(){
-        List<String> list = null;
-        list.add(txtNewUsername.getText());
-        list.add(txtNewPwd.getText());
-        list.add(txtNewPwdConfirm.getText());
-        return list;
-    }
 }

@@ -6,10 +6,17 @@
 package server;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import model.Account;
 import static server.Server.log;
 
 /**
@@ -17,11 +24,13 @@ import static server.Server.log;
  * @author Cuong
  */
 public class ServerThread implements Runnable{
+        
         private Socket clientSocket;
         private int clientNumber;
         private BufferedReader in;
-        private PrintWriter out;
+        private BufferedWriter out;
         private boolean isClosed; 
+        private Account account;
         
         public int getClientNumber(){
             return clientNumber;
@@ -40,12 +49,13 @@ public class ServerThread implements Runnable{
             
             try{
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                out = new PrintWriter(clientSocket.getOutputStream(), true);
+                out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
                 
                 write("Bạn là client #" + clientNumber);
                 
                 while(!isClosed){
                     clientResponse = in.readLine();
+                    log("Client: " + clientResponse);
                     opcode(clientResponse, out);
                 }
             } catch(Exception e){
@@ -53,6 +63,8 @@ public class ServerThread implements Runnable{
                 e.printStackTrace();
             } finally{
                 try {
+                    setOffline(account.getUsername());
+                    Server.getServerThreadBUS().boardcast(clientNumber, "52" + "," + account.getUsername());
                     clientSocket.close();
                 } catch (Exception e) {
                     log("Lỗi khi khởi động kết nối");
@@ -62,7 +74,7 @@ public class ServerThread implements Runnable{
         }
         
         //Ma lenh thuc thi 
-        public void opcode(String clientResponse, PrintWriter out) throws Exception{
+        public void opcode(String clientResponse, BufferedWriter out) throws Exception{
             Boolean authenticationFlag = false;
             String[] params = clientResponse.split(",");
             int code = Integer.parseInt(params[0]);
@@ -77,18 +89,21 @@ public class ServerThread implements Runnable{
                         if(authenticate(username, password)){
                             setOnline(username);
                             authenticationFlag = true;
-                            write(authenticationFlag.toString());
-                            write("Chào mừng " + username + "!");                            
+                            account = new Account(username, true);
+                            write("0," + authenticationFlag.toString());                           
+                            write("50" + getOnlineAccounts());
+                            Server.getServerThreadBUS().boardcast(clientNumber,"51" + "," + account.getUsername());
+                            
                         } else {
                             log("Sai username hoặc password");
-                            write(authenticationFlag.toString());
-                            write("Sai username hoặc password");                                                     
+                            write("0," + authenticationFlag.toString());                                                   
                         }
                         Arrays.fill(params, null);
                         break;
                     } catch(Exception ex){
                         ex.printStackTrace();
                     }
+                    break;
                 //Tao tai khoan moi
                 case (1):
                     try{
@@ -98,41 +113,41 @@ public class ServerThread implements Runnable{
                         Boolean addFlag = false;
 
                         if(addNewAccount(username, password))
-                        {
-                            addFlag = true;
-                            write(addFlag.toString());
-                            write("Tạo tài khoản " + username + " thành công!");                           
-                        }
+                            write("1,true");
                         else
-                        {
-                            addFlag = false;
-                            write(addFlag.toString());
-                            write("Tạo tài khoản không thành công");
-                        }
+                            write("1,false");
+
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
                             e.printStackTrace();
                     }
-                    
+                    break;
                 //Logout
                 case (2):
                     try {
+                        
                         String username = params[1];                            
                         setOffline(username);                        
-                        Boolean logoutFlag = true;                       
-                        write(logoutFlag.toString());                        
+                                             
+                        write("2");  
+                        
                         log(username + " đã ngắt kết nối đến server");
+                        Server.getServerThreadBUS().boardcast(clientNumber, "52" + "," + username);
+                        isClosed = true;
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e){
                         e.printStackTrace();
                     }
+                    break;
+                default:
+                    Arrays.fill(params, null);
+                    break;
             }
         }
         
         public static Boolean authenticate(String username, String password) throws Exception{
-            log(MySqlDB.getPassword(username));
             if(password.equals(MySqlDB.getPassword(username)))
                 return true;
             return false;
@@ -150,8 +165,26 @@ public class ServerThread implements Runnable{
             return MySqlDB.addAccount(username, password);
         }
         
-        public void write(String message){
-            out.println(message);
+        public String getOnlineAccounts(){
+            String str = "";
+            try{
+                ArrayList<String> list = MySqlDB.getOnlineGlobal(account.getUsername());                
+                if(list!=null){
+                    for(int i=0; i<list.size(); i++){                        
+                        str += "," + list.get(i);
+                    }
+                }
+                return str;
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+            return str;             
+        }
+        
+        public void write(String message) throws IOException{
+            log("Server: " + message);
+            out.write(message);
+            out.newLine();
             out.flush();
         }
     }

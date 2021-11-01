@@ -6,6 +6,8 @@
 package server;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import model.Account;
 
 /**
@@ -194,6 +196,27 @@ public class MySqlDB{
                 se.printStackTrace();
             }
         }		
+    }
+    
+    //Lay danh sach online Global
+    public static ArrayList<String> getOnlineGlobal(String username) throws ClassNotFoundException, SQLException{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+        ArrayList<String> list = new ArrayList<>();
+        String query = "Select username from account "
+                + "where username != ? "
+                + "and isOnline = 1";
+        PreparedStatement statement = con.prepareStatement(query);
+        statement.setString(1, username);
+        
+        ResultSet rs = statement.executeQuery();
+        System.out.println(rs.toString());
+        while(rs.next()){            
+            list.add(rs.getString(1));
+        }
+        return list;
     }
 }
 
