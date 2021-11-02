@@ -240,11 +240,7 @@ public class Client {
     public static void main(String[] args) {                
 
         try{
-
-            
-                
             Client controller = new Client();
-            
         } catch (Exception ex) {
             ex.printStackTrace();
         }            
