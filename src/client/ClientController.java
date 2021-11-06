@@ -13,31 +13,37 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import model.Account;
+import model.Client;
+import model.Friend;
 
 /**
  *
  * @author Cuong
  */
-public class Client {
+public class ClientController {
     private Socket clientSocket;
     private LoginView loginView;
     private MainMenu mainMenu;
 
     private Account account;
+    private Client client;
     
     private String clientResponse;
     private String serverResponse;
     private Thread thread;
     
     private ArrayList<String> globalList = new ArrayList<>();
+    private ArrayList<Friend> friends;
+    private HashMap<String, Friend> friendMap;
     
     private BufferedReader in;
     private BufferedWriter out;
     
-    public Client(){
+    public ClientController(){
                
         LoginView loginView = new LoginView(this);
         loginView.setVisible(true);
@@ -54,9 +60,9 @@ public class Client {
         }        
     }
     
-    public void Register(String username, String password, String passwordConfirm){
+    public void Register(String nickname, String username, String password, String passwordConfirm){
         try {
-            clientResponse = packageString("1", username, password);
+            clientResponse = packageString("1", nickname, username, password);
             sendMsg(clientResponse);        
         } catch (Exception e) {
             e.printStackTrace();
@@ -102,8 +108,8 @@ public class Client {
                         if(clientSocket.isConnected())
                             log("Ket noi den" + clientSocket.getRemoteSocketAddress() + " da duoc thiet lap"); 
                         String serverResponse = receiveMsg();
-                        log("\nServer phan hoi " + serverResponse);   
-                        
+                        log("\nServer phan hoi " + serverResponse);  
+                        //luồng nhận dữ liệu của client
                         while(!clientSocket.isClosed()){
                             serverResponse = receiveMsg();
                             opcode(serverResponse);
@@ -176,8 +182,10 @@ public class Client {
                 //Login
                 case (0):
                     try {
-                        if(params[1].equals("true")){                                          
-                            MainMenu mainMenu = new MainMenu(this);
+                        if(params[1].equals("true")){   
+                            System.out.println(params[2] + " " + params[3] + " " + params[4]);
+                            client = new Client(Integer.parseInt(params[2]), params[3], params[4]);
+                            MainMenu mainMenu = new MainMenu(this, client, null);
                             this.mainMenu = mainMenu;
                             loginView.dispose();
                         } else{
@@ -186,6 +194,46 @@ public class Client {
                         Arrays.fill(params, null);
                         break;    
                     } catch (Exception e) {
+                    }
+                    break;
+                // load danh sach ban be
+                    case (49):
+                    try {
+                        if(params[1].equals("true")){   
+                            ArrayList<Friend> list = new ArrayList<>();
+                            if(!params[2].isEmpty()){
+                                for(int i = 2; i < params.length ;i += 3){
+                                    Friend f = new Friend(Integer.parseInt(params[i]), params[i+1], Integer.parseInt(params[i+2]));
+                                    list.add(f);
+                                }
+                                
+                            }
+                            this.friends = list;
+                            this.mainMenu.setFriends(list);
+                        } else{
+                            loginView.showErrorMessage("Sai username hoặc password","Lỗi");
+                        }
+                        Arrays.fill(params, null);
+                        break;    
+                    } catch (Exception e) {
+                    }
+                    break;
+                // nhận thông tin broadcast một user mới online, nếu có trong ds bạn bè thì hiển thị thành online
+                    case (29):
+                        try {
+                            int id = Integer.parseInt(params[1]);
+                            int isOnline = Integer.parseInt(params[2]);
+                        for(Friend f : friends){
+                            if(f.getId() == id){
+                                f.setIsOnline(isOnline);
+                                this.mainMenu.setFriends(friends);
+                                break;
+                            }
+                        }
+                        Arrays.fill(params, null);
+                        break;    
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                     break;
                 //Tao tai khoan
@@ -240,7 +288,7 @@ public class Client {
     public static void main(String[] args) {                
 
         try{
-            Client controller = new Client();
+            ClientController controller = new ClientController();
         } catch (Exception ex) {
             ex.printStackTrace();
         }            
