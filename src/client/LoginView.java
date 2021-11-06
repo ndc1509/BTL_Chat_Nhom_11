@@ -15,11 +15,11 @@ import model.Account;
  * @author Cuong
  */
 public class LoginView extends javax.swing.JFrame {
-    private Client controller;
+    private ClientController controller;
     /**
      * Creates new form LoginView
      */
-    public LoginView(Client controller) {
+    public LoginView(ClientController controller) {
         this.controller = controller;
         initComponents();
     }

@@ -24,6 +24,7 @@ public class Account {
     public Account(String username, String password) {
         this.username = username;
         this.password = password;
+        this.online = false;
     }
     
     public Account(String username, boolean online){

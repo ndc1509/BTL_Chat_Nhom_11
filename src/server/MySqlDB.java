@@ -9,6 +9,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import model.Account;
+import model.Client;
 
 /**
  *
@@ -65,7 +66,7 @@ public class MySqlDB{
         return pass;
     }
     //Dang ki
-    public static Boolean addAccount(String username, String password) throws SQLException, ClassNotFoundException{
+    public static Boolean addAccount(String nickname, String username, String password) throws SQLException, ClassNotFoundException{
         Connection con = null;
         
         try {
@@ -73,12 +74,18 @@ public class MySqlDB{
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
 
             String query = "INSERT INTO account (username, password, isOnline) VALUES (?, ?, 0)";
-
+            String queryAddClient = "INSERT INTO client (nick_name, user_name) VALUES (?, ?)";
+            
             PreparedStatement ps = con.prepareStatement(query);
             ps.setString(1, username);
             ps.setString(2, password);
             int res = ps.executeUpdate();
-
+            
+            ps = con.prepareStatement(queryAddClient);
+            ps.setString(1, nickname);
+            ps.setString(2, username);
+            ps.execute();
+            
             ps.close();
             con.close();
 
@@ -96,6 +103,48 @@ public class MySqlDB{
                 se.printStackTrace();
             }
         }
+    }
+    
+    //Lay thong tin client
+    public static Client getClient(String username) throws ClassNotFoundException, SQLException{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        String query = "SELECT client.Id, client.nick_name, client.user_name"
+                + " FROM client, account "
+                + " WHERE client.user_name = account.username AND account.username = ?";
+        PreparedStatement ps = con.prepareStatement(query);
+        ps.setString(1, username);
+        ResultSet result =  ps.executeQuery();
+        Client client = null;
+        while(result.next()){
+            client = new Client(Integer.parseInt(result.getString(1)), result.getString(2), result.getString(3));
+        }
+        ps.close();
+        con.close();
+        
+        return client;
+    }
+    // lay danh sach ban be theo id cua client
+    public static String getListFriend(String username) throws ClassNotFoundException, SQLException{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        String query = "SELECT client.Id, client.nick_name, isOnline "
+                + "FROM account, client, friendship1 "
+                + "WHERE friendship1.account2 = account.username "
+                + "AND account.username = client.user_name "
+                + "AND friendship1.account1 = ?";
+
+        PreparedStatement ps = con.prepareStatement(query);
+        ps.setString(1, username);
+        ResultSet result =  ps.executeQuery();
+        String list = "";
+        //System.out.println(result.getInt(1)+ " " + result.getString(2) + " " + result.getString(3) + " " +result.getInt(4));
+        while(result.next()){
+            list = list + String.format("%d,%s,%d,", result.getInt(1), result.getString(2), result.getInt(3));
+        }
+        return list.substring(0, list.length()-1);
     }
     //K hieu
     public static String[] getAccount(String username) throws SQLException, ClassNotFoundException{
@@ -217,6 +266,9 @@ public class MySqlDB{
             list.add(rs.getString(1));
         }
         return list;
+    }
+    public static void main(String[] args) throws ClassNotFoundException, SQLException {
+        System.out.println(MySqlDB.getListFriend("duc"));
     }
 }
 

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import model.Account;
+import model.Client;
 import static server.Server.log;
 
 /**
@@ -31,7 +32,7 @@ public class ServerThread implements Runnable{
         private BufferedWriter out;
         private boolean isClosed; 
         private Account account;
-        
+        private Client client;
         public int getClientNumber(){
             return clientNumber;
         }
@@ -64,7 +65,8 @@ public class ServerThread implements Runnable{
             } finally{
                 try {
                     setOffline(account.getUsername());
-                    Server.getServerThreadBUS().boardcast(clientNumber, "52" + "," + account.getUsername());
+                    //Server.getServerThreadBUS().boardcast(clientNumber, "52" + "," + account.getUsername());
+                    Server.getServerThreadBUS().broadcast("29," +client.getId()+"," + 0 );
                     clientSocket.close();
                 } catch (Exception e) {
                     log("Lỗi khi khởi động kết nối");
@@ -90,10 +92,11 @@ public class ServerThread implements Runnable{
                             setOnline(username);
                             authenticationFlag = true;
                             account = new Account(username, true);
-                            write("0," + authenticationFlag.toString());                           
-                            write("50" + getOnlineAccounts());
-                            Server.getServerThreadBUS().boardcast(clientNumber,"51" + "," + account.getUsername());
-                            
+                            client = MySqlDB.getClient(username);
+                            write("0," + authenticationFlag.toString() + "," +client.toString());                           
+                            write("49,"+ authenticationFlag.toString() + "," +MySqlDB.getListFriend(client.getUsername()));
+//                            Server.getServerThreadBUS().boardcast(clientNumber,"51" + "," + account.getUsername());
+                            Server.getServerThreadBUS().broadcast("29," +client.getId()+"," + 1 );// báo cho các client khác là có 1 client có Id online
                         } else {
                             log("Sai username hoặc password");
                             write("0," + authenticationFlag.toString());                                                   
@@ -107,12 +110,13 @@ public class ServerThread implements Runnable{
                 //Tao tai khoan moi
                 case (1):
                     try{
-                        String username = params[1];
-                        String password = params[2];
+                        String nickname = params[1];
+                        String username = params[2];
+                        String password = params[3];
                         
                         Boolean addFlag = false;
 
-                        if(addNewAccount(username, password))
+                        if(addNewAccount(nickname, username, password))
                             write("1,true");
                         else
                             write("1,false");
@@ -161,8 +165,8 @@ public class ServerThread implements Runnable{
             MySqlDB.setOnline(username, false);
         }
         
-        public static Boolean addNewAccount(String username, String password) throws Exception{
-            return MySqlDB.addAccount(username, password);
+        public static Boolean addNewAccount(String nickname, String username, String password) throws Exception{
+            return MySqlDB.addAccount(nickname, username, password);
         }
         
         public String getOnlineAccounts(){

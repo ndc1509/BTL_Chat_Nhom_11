@@ -1,86 +1,143 @@
-CREATE DATABASE  IF NOT EXISTS `chat` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `chat`;
--- MySQL dump 10.13  Distrib 8.0.26, for Win64 (x86_64)
+-- phpMyAdmin SQL Dump
+-- version 5.1.1
+-- https://www.phpmyadmin.net/
 --
--- Host: localhost    Database: chat
--- ------------------------------------------------------
--- Server version	8.0.26
+-- Máy chủ: 127.0.0.1:3308
+-- Thời gian đã tạo: Th10 06, 2021 lúc 11:19 AM
+-- Phiên bản máy phục vụ: 10.4.21-MariaDB
+-- Phiên bản PHP: 8.0.11
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*!40101 SET NAMES utf8mb4 */;
 
 --
--- Table structure for table `account`
+-- Cơ sở dữ liệu: `chat`
 --
 
-DROP TABLE IF EXISTS `account`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `account`
+--
+DROP DATABASE IF EXISTS `chat`;
+CREATE DATABASE chat;
+USE chat;
 CREATE TABLE `account` (
-  `username` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `isOnline` int NOT NULL,
-  PRIMARY KEY (`username`),
-  UNIQUE KEY `username_UNIQUE` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `username` varchar(255) CHARACTER SET latin1 NOT NULL,
+  `password` varchar(255) CHARACTER SET latin1 NOT NULL,
+  `isOnline` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data for table `account`
+-- Đang đổ dữ liệu cho bảng `account`
 --
 
-LOCK TABLES `account` WRITE;
-/*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES ('admin','admin',0),('ndc','123',1);
-/*!40000 ALTER TABLE `account` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `account` (`username`, `password`, `isOnline`) VALUES
+('admin', '1', 0),
+('cuong', '1', 0),
+('duc', '1', 0);
+
+-- --------------------------------------------------------
 
 --
--- Table structure for table `frendship`
+-- Cấu trúc bảng cho bảng `client`
 --
 
-DROP TABLE IF EXISTS `frendship`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `frendship` (
-  `user1` varchar(255) NOT NULL,
-  `user2` varchar(255) NOT NULL,
-  PRIMARY KEY (`user1`,`user2`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE `client` (
+  `Id` int(11) NOT NULL,
+  `nick_name` varchar(50) NOT NULL,
+  `user_name` varchar(255) CHARACTER SET latin1 NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Dumping data for table `frendship`
+-- Đang đổ dữ liệu cho bảng `client`
 --
 
-LOCK TABLES `frendship` WRITE;
-/*!40000 ALTER TABLE `frendship` DISABLE KEYS */;
-/*!40000 ALTER TABLE `frendship` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `client` (`Id`, `nick_name`, `user_name`) VALUES
+(1, 'Nickname_admin', 'admin'),
+(2, 'Nickname_duc', 'duc'),
+(3, 'Nickname_cuong', 'cuong');
+
+-- --------------------------------------------------------
 
 --
--- Dumping events for database 'chat'
+-- Cấu trúc bảng cho bảng `friendship1`
+--
+
+CREATE TABLE `friendship1` (
+  `account1` varchar(255) CHARACTER SET latin1 NOT NULL,
+  `account2` varchar(255) CHARACTER SET latin1 NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Đang đổ dữ liệu cho bảng `friendship1`
+--
+
+INSERT INTO `friendship1` (`account1`, `account2`) VALUES
+('admin', 'cuong'),
+('admin', 'duc'),
+('duc', 'admin'),
+('cuong', 'duc'),
+('duc', 'cuong');
+
+--
+-- Chỉ mục cho các bảng đã đổ
 --
 
 --
--- Dumping routines for database 'chat'
+-- Chỉ mục cho bảng `account`
 --
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+ALTER TABLE `account`
+  ADD PRIMARY KEY (`username`);
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+--
+-- Chỉ mục cho bảng `client`
+--
+ALTER TABLE `client`
+  ADD PRIMARY KEY (`Id`),
+  ADD KEY `client_pass` (`user_name`);
+
+--
+-- Chỉ mục cho bảng `friendship1`
+--
+ALTER TABLE `friendship1`
+  ADD KEY `account1` (`account1`),
+  ADD KEY `account2` (`account2`);
+
+--
+-- AUTO_INCREMENT cho các bảng đã đổ
+--
+
+--
+-- AUTO_INCREMENT cho bảng `client`
+--
+ALTER TABLE `client`
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- Các ràng buộc cho các bảng đã đổ
+--
+
+--
+-- Các ràng buộc cho bảng `client`
+--
+ALTER TABLE `client`
+  ADD CONSTRAINT `client_pass` FOREIGN KEY (`user_name`) REFERENCES `account` (`username`);
+
+--
+-- Các ràng buộc cho bảng `friendship1`
+--
+ALTER TABLE `friendship1`
+  ADD CONSTRAINT `friendship1_ibfk_2` FOREIGN KEY (`account2`) REFERENCES `account` (`username`);
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2021-10-31 14:39:13
