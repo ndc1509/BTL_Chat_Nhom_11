@@ -3,14 +3,15 @@
  - CSDL với bảng tài khoản và bạn bè
  - Login/logout/đăng kí
  - Mỗi client có thể biết những ai onl trên server, danh sách tự động cập nhật
+ - Tính năng kết bạn
+
  2) Các phần cần thực hiện
- - Chức năng kết bạn
  - Chat 1-1
  - Chat nhóm
  - Truyền gửi file
  - Gửi icon/ảnh
  - Video chat
- - Sửa lại cấu trúc project: tách ClientHandler ra khỏi server?
+
  3) Ý tưởng thêm
  - Thiết lập avatar
  - Mã hóa mật khẩu
