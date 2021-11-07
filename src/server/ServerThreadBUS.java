@@ -44,9 +44,9 @@ public class ServerThreadBUS {
     }
     
     //Gửi cho 1 client
-    public void unicast(int id, String message){
+    public void unicast(String username, String message){
         for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
-            if(serverThread.getClientNumber() == id){
+            if(serverThread.getAccountUsername().equals(username)){
                 try {
                     serverThread.write(message);
                 } catch (Exception e) {

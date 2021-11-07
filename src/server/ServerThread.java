@@ -36,6 +36,10 @@ public class ServerThread implements Runnable{
             return clientNumber;
         }
         
+        public String getAccountUsername(){
+            return this.account.getUsername();
+        }
+        
         public ServerThread(Socket clientSocket, int clientNumber){
             this.clientSocket = clientSocket;
             this.clientNumber = clientNumber;
@@ -91,9 +95,13 @@ public class ServerThread implements Runnable{
                             authenticationFlag = true;
                             account = new Account(username, true);
                             write("0," + authenticationFlag.toString());                           
-                            write("50" + getOnlineAccounts());
+                            if(getOnlineAccounts()!="")
+                                write("50" + getOnlineAccounts());
                             Server.getServerThreadBUS().boardcast(clientNumber,"51" + "," + account.getUsername());
-                            
+                            if(!getFriendRequest().equals(""))
+                                write("40" + getFriendRequest());
+                            if(!getFriends().equals(""))
+                                write("53" + getFriends());
                         } else {
                             log("Sai username hoặc password");
                             write("0," + authenticationFlag.toString());                                                   
@@ -141,6 +149,49 @@ public class ServerThread implements Runnable{
                         e.printStackTrace();
                     }
                     break;
+                    
+                //Accept friend
+                case (45):
+                    try {
+                        String username = params[1];                                                   
+                        acceptFriendRequest(username);
+                        write("40" + getFriendRequest());
+                        write("53" + getFriends());
+                        Server.getServerThreadBUS().unicast(username, "42," + account.getUsername());
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                    
+                //Decline friend
+                case (46):
+                    try {
+                        String username = params[1];                                                   
+                        declineFriendRequest(username);
+                        write("40" + getFriendRequest());
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                
+                    
+                //Get friend request
+                case (47):
+                    try {
+                        String username = params[1];                                                   
+                        if(sendFriendRequest(username)==true)
+                            Server.getServerThreadBUS().unicast(username, "41," + account.getUsername());
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                      
                 default:
                     Arrays.fill(params, null);
                     break;
@@ -181,10 +232,54 @@ public class ServerThread implements Runnable{
             return str;             
         }
         
+        public String getFriends(){
+            String str = "";
+            try{
+                List<String> list = MySqlDB.getFriends(account.getUsername());                
+                if(list!=null){
+                    for(int i=0; i<list.size(); i++){                        
+                        str += "," + list.get(i);
+                    }
+                }
+                return str;
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+            return str;
+        }
+        
         public void write(String message) throws IOException{
             log("Server: " + message);
             out.write(message);
             out.newLine();
             out.flush();
+        }
+        
+        public String getFriendRequest(){
+            String str = "";
+            try{
+                ArrayList<String> list = MySqlDB.getFriendRequest(account.getUsername());                
+                if(list!=null){
+                    for(int i=0; i<list.size(); i++){                        
+                        str += "," + list.get(i);
+                    }
+                }
+                return str;
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+            return str;  
+        }
+        
+        public Boolean sendFriendRequest(String username){
+            return  MySqlDB.sendFriendRequest(account.getUsername(), username);
+        }
+        
+        public void acceptFriendRequest(String username){
+            MySqlDB.acceptFriendRequest(username, account.getUsername());
+        }
+        
+        public void declineFriendRequest(String username){
+            MySqlDB.declineFriendRequest(username, account.getUsername());
         }
     }

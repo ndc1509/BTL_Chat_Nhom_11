@@ -132,33 +132,23 @@ public class MySqlDB{
 
         return usersArr;
     }
-    //K hieu
-    public static String[] getAccountFriends(String user) throws SQLException, ClassNotFoundException{
+    //Lay danh sach ban be
+    public static List<String> getFriends(String user) throws SQLException, ClassNotFoundException{
         Connection con = null;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        String query = "SELECT username FROM account WHERE "
-                + "username NOT IN (SELECT user2 FROM friendship WHERE user1 = ?) "
-                + "AND username != ? "
-                + "AND username != 'GLOBAL' "
-                + "AND username != 'ADMIN';";
+        String query = "SELECT user2 FROM friendship WHERE "
+                + "user1 = ?";
         PreparedStatement statement = con.prepareStatement(query);
         statement.setString(1, user);
-        statement.setString(2, user);
         
         ResultSet result =  statement.executeQuery();
 
-        int count = 0;
-        result.last();
-        count = result.getRow();
-        result.beforeFirst();
-
-        String[] usersArr = new String[count];
-        int i = 0;
+        List<String> usersArr = new ArrayList<>();
+ 
         while(result.next()) {                
-                usersArr[i] = result.getString(1);
-                i++;
+            usersArr.add(result.getString(1));
         }
 
         statement.close();
@@ -167,7 +157,7 @@ public class MySqlDB{
     }
     
     //Them ban 
-    public static Boolean addFriendDB(String user1, String user2) {
+    public static Boolean addFriend(String user1, String user2) {
         Connection con = null;
         try {   
             Class.forName(jdbcDriver);
@@ -198,6 +188,115 @@ public class MySqlDB{
         }		
     }
     
+    public static Boolean sendFriendRequest(String user1, String user2){
+        Connection con = null;
+        boolean ok = false;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+            String query = "INSERT INTO friendrequest (fromuser, touser, status) VALUES (?,?,0)";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setString(1, user1);
+            statement.setString(2, user2);
+            int i = statement.executeUpdate();
+            if(i == 0)
+                ok = false;
+            else ok = true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            ok = false;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }
+        return ok;
+    }
+    
+     public static ArrayList<String> getFriendRequest(String user2) throws Exception{
+        Connection con = null;
+
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+
+        String query = "Select fromuser From friendrequest where touser = ? and status = 0";
+        PreparedStatement statement = con.prepareStatement(query);
+
+        statement.setString(1, user2);
+        ResultSet rs = statement.executeQuery();
+        ArrayList<String> arr = new ArrayList<>();
+        while(rs.next()){
+            arr.add(rs.getString(1));
+        }
+        return arr;
+
+    }
+    
+    public static Boolean acceptFriendRequest(String user1, String user2){
+        Connection con = null;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+            String query = "Update friendrequest set status = 1 "
+                    + "where fromuser = ? and touser = ?";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setString(1, user1);
+            statement.setString(2, user2);
+            statement.executeUpdate();
+            
+            String query2 = "Insert into friendship values (?,?) , (?,?)";
+            statement = con.prepareStatement(query2);
+            statement.setString(1, user1);
+            statement.setString(2, user2);
+            statement.setString(3, user2);
+            statement.setString(4, user1);
+            statement.executeUpdate();
+            statement.close();
+            return true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }		
+    }
+    
+    public static Boolean declineFriendRequest(String user1, String user2){
+        Connection con = null;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+            String query = "DELETE FROM friendrequest "
+                    + "where fromuser = ? and touser = ?";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setString(1, user1);
+            statement.setString(2, user2);
+            statement.executeUpdate();
+            statement.close();
+            con.close();
+
+            return true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }		
+    }
+    
     //Lay danh sach online Global
     public static ArrayList<String> getOnlineGlobal(String username) throws ClassNotFoundException, SQLException{
         Connection con = null;
@@ -212,7 +311,6 @@ public class MySqlDB{
         statement.setString(1, username);
         
         ResultSet rs = statement.executeQuery();
-        System.out.println(rs.toString());
         while(rs.next()){            
             list.add(rs.getString(1));
         }

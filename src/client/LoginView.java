@@ -188,7 +188,7 @@ public class LoginView extends javax.swing.JFrame {
             showErrorMessage("Không được để trống", "Đăng nhập lỗi");
             return;
         }
-        controller.Login(username, password);
+        controller.login(username, password);
     }//GEN-LAST:event_btnLoginActionPerformed
 
     private void btnRegActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegActionPerformed
@@ -205,7 +205,7 @@ public class LoginView extends javax.swing.JFrame {
             showErrorMessage("Xác nhận mật khẩu không đúng", "Đăng ký lỗi");
             return;
         }
-        controller.Register(username, password, passwordConfirm);
+        controller.register(username, password, passwordConfirm);
     }//GEN-LAST:event_btnRegActionPerformed
 
     public void showErrorMessage(String errorMsg, String errorTitle){

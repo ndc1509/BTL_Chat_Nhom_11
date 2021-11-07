@@ -5,6 +5,8 @@
  */
 package client;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -14,6 +16,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import model.Account;
 
@@ -25,7 +29,7 @@ public class Client {
     private Socket clientSocket;
     private LoginView loginView;
     private MainMenu mainMenu;
-
+    private RequestView requestView;
     private Account account;
     
     private String clientResponse;
@@ -33,19 +37,24 @@ public class Client {
     private Thread thread;
     
     private ArrayList<String> globalList = new ArrayList<>();
+    private ArrayList<String> frRequestList = new ArrayList<>();
+    private ArrayList<String> frList = new ArrayList<>();
     
     private BufferedReader in;
     private BufferedWriter out;
     
-    public Client(){
-               
+    public Client(){               
         LoginView loginView = new LoginView(this);
         loginView.setVisible(true);
         this.loginView = loginView;
         setUpSocket();
     }    
-                
-    public void Login(String username, String password){
+
+    public ArrayList<String> getFrRequestList() {
+        return frRequestList;
+    }
+    
+    public void login(String username, String password){
         try {
             clientResponse = packageString("0", username, password);
             sendMsg(clientResponse);
@@ -54,7 +63,7 @@ public class Client {
         }        
     }
     
-    public void Register(String username, String password, String passwordConfirm){
+    public void register(String username, String password, String passwordConfirm){
         try {
             clientResponse = packageString("1", username, password);
             sendMsg(clientResponse);        
@@ -63,7 +72,7 @@ public class Client {
         }
     }
     
-    public void Logout(int input){
+    public void logout(int input){
         if(input == 0){
             try {
                 clientResponse = packageString("2", account.getUsername());
@@ -91,18 +100,16 @@ public class Client {
             thread = new Thread(){
                 @Override
                 public void run() {
-
                     try{
                         String hostname = "127.0.0.1";
                         int port = 19750;
-                        log("Ket noi den " + hostname + " port " + port);
+                        log("Kết nối đến " + hostname + " port " + port);
                         clientSocket = new Socket(hostname, port);
                         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                         out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
                         if(clientSocket.isConnected())
-                            log("Ket noi den" + clientSocket.getRemoteSocketAddress() + " da duoc thiet lap"); 
-                        String serverResponse = receiveMsg();
-                        log("\nServer phan hoi " + serverResponse);   
+                            log("Kết nối đến " + clientSocket.getRemoteSocketAddress() + " đã được thiết lập"); 
+                        String serverResponse = receiveMsg();  
                         
                         while(!clientSocket.isClosed()){
                             serverResponse = receiveMsg();
@@ -132,7 +139,6 @@ public class Client {
                 case (50):
                     try{
                         for(int i=1; i<params.length; i++)
-
                             globalList.add(params[i]);
                         if(globalList!=null)
                             mainMenu.setGlobalList(globalList);
@@ -144,18 +150,15 @@ public class Client {
                     break;
                 //1 user goOnline
                 case (51):
-                    try{
-                        
-                            globalList.add(params[1]);
-                            mainMenu.setGlobalList(globalList);
-                        
+                    try{                        
+                        globalList.add(params[1]);
+                        mainMenu.setGlobalList(globalList);
+                        if(frList!=null)
+                            viewFriends();
                         Arrays.fill(params, null);
                         break;
                     }catch(Exception e){
-                        e.printStackTrace();
-           
-                    
-                    
+                        e.printStackTrace();                
                     }
                     break;
                 //1 user goOffline
@@ -167,9 +170,25 @@ public class Client {
                                     globalList.remove(i);
                                     mainMenu.setGlobalList(globalList);
                                 }
+                        if(frList!=null)
+                            viewFriends();
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                //FriendList
+                case (53):
+                    try{
+                        frList.clear();
+                        for(int i=1; i<params.length; i++)
+                            frList.add(params[i]);
+                        if(frList!=null)
+                            viewFriends();
+                        Arrays.fill(params, null);
+                        break;
+                    } catch(Exception e){
                         e.printStackTrace();
                     }
                     break;
@@ -179,6 +198,7 @@ public class Client {
                         if(params[1].equals("true")){                                          
                             MainMenu mainMenu = new MainMenu(this);
                             this.mainMenu = mainMenu;
+                            mainMenu.setTitle(account.getUsername());
                             loginView.dispose();
                         } else{
                             loginView.showErrorMessage("Sai username hoặc password","Lỗi");
@@ -213,6 +233,47 @@ public class Client {
                         e.printStackTrace();
                         log("Đóng kết nối không thành công");
                     }
+                    
+                //Lay tat ca yeu cau ket ban
+                case(40):
+                    try {
+                        frRequestList.clear();
+                        for(int i=1; i<params.length; i++)
+                            frRequestList.add(params[i]);
+                        if(this.requestView != null)
+                            updateRequest();
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                
+                //Lay 1 yeu cau ket ban moi
+                case(41):
+                    try {
+                        frRequestList.add(params[1]);
+                        if(this.requestView != null)
+                            updateRequest();
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break; 
+                //Yeu cau ket ban duoc chap nhan    
+                case(42):
+                    try {
+                        frList.add(params[1]);
+                        if(frList!=null)
+                            viewFriends();
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break; 
+                    
                 default:
                     Arrays.fill(params, null);                       
                     break;
@@ -240,13 +301,66 @@ public class Client {
     public static void main(String[] args) {                
 
         try{
-
-            
-                
-            Client controller = new Client();
-            
+            Client controller = new Client();            
         } catch (Exception ex) {
             ex.printStackTrace();
         }            
+    }
+    
+    public void sendAcceptResponse(String username){
+        try{
+            sendMsg("45," + username);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void sendDeclineResponse(String username){
+        try {
+            sendMsg("46," + username);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void sendFriendRequest(String username){
+        try {
+            sendMsg("47,"+username);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void viewRequest() {
+        this.requestView = new RequestView(this);
+        requestView.setTitle(account.getUsername());
+        requestView.setRequest(frRequestList);
+    }
+    
+    public void updateRequest(){
+        requestView.setRequest(frRequestList);
+    }
+
+    public void viewFriends(){
+        List<String> frOnline = new ArrayList<>(frList);
+        List<String> frOffline = new ArrayList<>();
+        for(int i=0; i<frList.size(); i++)
+            System.out.println(frList.get(i));
+        if(globalList.isEmpty()){
+            frOffline = frList;
+            mainMenu.setFrOfflineList(frOffline);
+            return;
+        }
+        else {
+            frOnline.retainAll(globalList);
+            
+            for(int k = 0; k<frList.size(); k++){
+                if(!frOnline.contains(frList.get(k)))
+                    frOffline.add(frList.get(k));
+            }
+                
+            mainMenu.setFrOfflineList(frOffline);
+            mainMenu.setFrOnlineList(frOnline);
+        }
     }
 }

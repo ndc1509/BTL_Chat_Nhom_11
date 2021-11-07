@@ -5,12 +5,15 @@
  */
 package client;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import model.Account;
 
@@ -19,7 +22,8 @@ import model.Account;
  * @author Cuong
  */
 public class MainMenu extends javax.swing.JFrame {
-
+    
+    private RequestView requestView;
     private Client controller;
     /**
      * Creates new form View
@@ -29,7 +33,8 @@ public class MainMenu extends javax.swing.JFrame {
         initComponents();
         this.setVisible(true);
     }
-
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -55,9 +60,11 @@ public class MainMenu extends javax.swing.JFrame {
         listGroup = new javax.swing.JList<>();
         jLabel3 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
+        btnAddFrd = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         changePwd = new javax.swing.JMenuItem();
+        frRequest = new javax.swing.JMenuItem();
         logout = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -94,6 +101,13 @@ public class MainMenu extends javax.swing.JFrame {
 
         jLabel5.setText("GROUP");
 
+        btnAddFrd.setText("Kết bạn");
+        btnAddFrd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddFrdActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -113,15 +127,16 @@ public class MainMenu extends javax.swing.JFrame {
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(76, 76, 76)
-                        .addComponent(jLabel3)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 10, Short.MAX_VALUE))))
+                            .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(28, 28, 28)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnAddFrd)))
+                .addGap(0, 10, Short.MAX_VALUE))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(52, 52, 52)
                 .addComponent(jLabel1)
@@ -152,9 +167,11 @@ public class MainMenu extends javax.swing.JFrame {
                         .addComponent(jLabel5)
                         .addGap(18, 18, 18)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(34, 34, 34)
-                        .addComponent(jLabel3)
-                        .addGap(0, 0, 0)
+                        .addGap(19, 19, 19)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel3)
+                            .addComponent(btnAddFrd))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(153, 153, 153))
         );
@@ -163,6 +180,14 @@ public class MainMenu extends javax.swing.JFrame {
 
         changePwd.setText("Thay đổi mật khẩu");
         jMenu1.add(changePwd);
+
+        frRequest.setText("Yêu cầu kết bạn");
+        frRequest.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                frRequestActionPerformed(evt);
+            }
+        });
+        jMenu1.add(frRequest);
 
         logout.setText("Đăng xuất");
         logout.addActionListener(new java.awt.event.ActionListener() {
@@ -193,12 +218,24 @@ public class MainMenu extends javax.swing.JFrame {
     private void logoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutActionPerformed
         // TODO add your handling code here:
         int input = JOptionPane.showConfirmDialog(null, "Bạn muốn đăng xuất?", "Xác nhận", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-        controller.Logout(input);
+        controller.logout(input);
     }//GEN-LAST:event_logoutActionPerformed
+
+    private void frRequestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_frRequestActionPerformed
+        // TODO add your handling code here:
+        controller.viewRequest();
+    }//GEN-LAST:event_frRequestActionPerformed
+
+    private void btnAddFrdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFrdActionPerformed
+        // TODO add your handling code here:
+        String friend = listGlobal.getSelectedValue();
+        controller.sendFriendRequest(friend);
+    }//GEN-LAST:event_btnAddFrdActionPerformed
 
     /**
      * @param args the command line arguments
      */
+    
     
     public void setGlobalList(List<String> list){
         listGlobal.removeAll();
@@ -207,9 +244,28 @@ public class MainMenu extends javax.swing.JFrame {
             model.addElement(list.get(i));
         listGlobal.setModel(model);
     }
+    
+    public void setFrOnlineList(List<String> list){
+        listOnline.removeAll();
+        DefaultListModel model = new DefaultListModel();
+        for(int i=0; i<list.size();i++)
+            model.addElement(list.get(i));
+        listOnline.setModel(model);
+    }
+
+    public void setFrOfflineList(List<String> list){
+        listOffline.removeAll();
+        DefaultListModel model = new DefaultListModel();
+        for(int i=0; i<list.size();i++)
+            model.addElement(list.get(i));
+        listOffline.setModel(model);
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddFrd;
     private javax.swing.JMenuItem changePwd;
     private javax.swing.JTabbedPane chatTab;
+    private javax.swing.JMenuItem frRequest;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
