@@ -2,7 +2,7 @@
  1) Các phần đã hoàn thành
  - CSDL với bảng tài khoản và bạn bè
  - Login/logout/đăng kí
-
+ - Mỗi client có thể biết những ai onl trên server, danh sách tự động cập nhật
  2) Các phần cần thực hiện
  - Chức năng kết bạn
  - Chat 1-1
@@ -27,13 +27,7 @@
 + Server xử lý chuỗi bằng cách tách chuỗi dựa vào dấu "," và cho ra mảng string params[], params[0] là mã lệnh
 + Chuỗi dữ liệu có thể dài tùy thích thành string4,5,6,...
 2) Server -> Client: gửi lần lượt các gói dữ liệu
-- Ví dụ:
-+ out.println(authenticationFlag.toString());
-+ out.flush();
-+ out.println("Chao mung " + username);
-+ out.flush();
-+ Server gửi cờ xác nhận cho client rồi flush luồng printwriter
-+ Server gửi thông điệp cho client rồi flush luồng printwriter
+như client
 
 # ThreadPool
 Một dạng đa Thread để xử lý nhiều client
