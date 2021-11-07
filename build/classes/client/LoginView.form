@@ -26,18 +26,12 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="0" attributes="0">
-              <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="32767" attributes="0"/>
-          </Group>
+          <Component id="jPanel1" alignment="0" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="0" attributes="0">
-              <EmptySpace pref="22" max="32767" attributes="0"/>
-              <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
-          </Group>
+          <Component id="jPanel1" alignment="1" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
   </Layout>
@@ -56,17 +50,17 @@
                   </Group>
                   <EmptySpace min="-2" pref="68" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="txtUsername" alignment="0" pref="149" max="32767" attributes="0"/>
+                      <Component id="txtUsername" alignment="0" max="32767" attributes="0"/>
                       <Component id="txtPassword" alignment="0" max="32767" attributes="0"/>
                       <Group type="102" alignment="1" attributes="0">
-                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          <EmptySpace min="0" pref="74" max="32767" attributes="0"/>
                           <Component id="btnLogin" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace min="-2" pref="100" max="-2" attributes="0"/>
               </Group>
               <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace min="-2" pref="131" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="141" max="-2" attributes="0"/>
                   <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
@@ -75,9 +69,9 @@
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace min="-2" pref="37" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="48" max="-2" attributes="0"/>
                   <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace pref="43" max="32767" attributes="0"/>
+                  <EmptySpace pref="54" max="32767" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="txtUsername" alignment="3" min="-2" max="-2" attributes="0"/>

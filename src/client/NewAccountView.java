@@ -68,7 +68,7 @@ public class NewAccountView extends javax.swing.JFrame {
                     .addComponent(jLabel4)
                     .addComponent(jLabel6)
                     .addComponent(jLabel5))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 127, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 147, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnReg, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -107,10 +107,7 @@ public class NewAccountView extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -134,7 +131,7 @@ public class NewAccountView extends javax.swing.JFrame {
             showErrorMessage("Xác nhận mật khẩu không đúng", "Đăng ký lỗi");
             return;
         }
-        controller.Register(username, password, passwordConfirm);
+        controller.register(username, password, passwordConfirm);
         loginView.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_btnRegActionPerformed
