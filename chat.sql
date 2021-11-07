@@ -39,18 +39,43 @@ CREATE TABLE `account` (
 
 LOCK TABLES `account` WRITE;
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES ('admin','admin',0),('ndc','123',1);
+INSERT INTO `account` VALUES ('ad','ad',0),('admin','admin',0),('asd','123',0),('cuong','123',0),('ez','123',0),('gg','123',0),('hieu','123',0),('ndc','123',0),('xyz','123',0);
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `frendship`
+-- Table structure for table `friendrequest`
 --
 
-DROP TABLE IF EXISTS `frendship`;
+DROP TABLE IF EXISTS `friendrequest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `frendship` (
+CREATE TABLE `friendrequest` (
+  `fromuser` varchar(255) NOT NULL,
+  `touser` varchar(255) NOT NULL,
+  `status` int NOT NULL,
+  PRIMARY KEY (`fromuser`,`touser`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `friendrequest`
+--
+
+LOCK TABLES `friendrequest` WRITE;
+/*!40000 ALTER TABLE `friendrequest` DISABLE KEYS */;
+INSERT INTO `friendrequest` VALUES ('ndc','admin',1),('xyz','ad',1);
+/*!40000 ALTER TABLE `friendrequest` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `friendship`
+--
+
+DROP TABLE IF EXISTS `friendship`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `friendship` (
   `user1` varchar(255) NOT NULL,
   `user2` varchar(255) NOT NULL,
   PRIMARY KEY (`user1`,`user2`)
@@ -58,21 +83,14 @@ CREATE TABLE `frendship` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `frendship`
+-- Dumping data for table `friendship`
 --
 
-LOCK TABLES `frendship` WRITE;
-/*!40000 ALTER TABLE `frendship` DISABLE KEYS */;
-/*!40000 ALTER TABLE `frendship` ENABLE KEYS */;
+LOCK TABLES `friendship` WRITE;
+/*!40000 ALTER TABLE `friendship` DISABLE KEYS */;
+INSERT INTO `friendship` VALUES ('ad','admin'),('ad','ez'),('ad','gg'),('ad','hieu'),('ad','ndc'),('ad','xyz'),('admin','ad'),('admin','cuong'),('admin','ndc'),('cuong','admin'),('cuong','hieu'),('ez','ad'),('gg','ad'),('hieu','ad'),('hieu','cuong'),('ndc','ad'),('ndc','admin'),('xyz','ad');
+/*!40000 ALTER TABLE `friendship` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping events for database 'chat'
---
-
---
--- Dumping routines for database 'chat'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -83,4 +101,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-10-31 14:39:13
+-- Dump completed on 2021-11-07 19:19:16
