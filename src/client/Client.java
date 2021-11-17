@@ -29,6 +29,7 @@ public class Client {
     private Socket clientSocket;
     private LoginView loginView;
     private MainMenu mainMenu;
+    private ChatView chatView;
     private RequestView requestView;
     private Account account;
     
@@ -54,6 +55,12 @@ public class Client {
         return frRequestList;
     }
     
+    public void setChatView(ChatView chatView){
+        this.chatView = chatView;
+    }
+    public String getAccountName(){
+        return account.getUsername();
+    }
     public void login(String username, String password){
         try {
             clientResponse = packageString("0", username, password);
@@ -273,7 +280,28 @@ public class Client {
                         e.printStackTrace();
                     }
                     break; 
-                    
+                // Nhan yeu cau chat
+                case(28):
+                    try {
+                       String friend = params[1];
+                       chatView = new ChatView(this, account.getUsername(), friend);
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break; 
+                //nhan tin nhan 1-1
+                case(29):
+                    try {
+                        String mes = params[1];
+                        chatView.addMess(mes);
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break; 
                 default:
                     Arrays.fill(params, null);                       
                     break;
@@ -326,6 +354,23 @@ public class Client {
     public void sendFriendRequest(String username){
         try {
             sendMsg("47,"+username);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void sendRequestChat(String friendName){
+        try {
+            sendMsg("28," + friendName);
+            chatView = new ChatView(this, account.getUsername(), friendName);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void sendToFriend(String mes, String friendName){
+        try {
+            sendMsg("29," + mes + "," + friendName);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }

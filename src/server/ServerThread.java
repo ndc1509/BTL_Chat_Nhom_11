@@ -191,7 +191,29 @@ public class ServerThread implements Runnable{
                         e.printStackTrace();
                     }
                     break;
-                      
+                // yeu cau tro chuyen 48,username
+                case (28): 
+                    try{
+                        String friendName = params[1]; 
+                        Server.getServerThreadBUS().unicast(friendName, "28," + account.getUsername());
+                        Arrays.fill(params, null);
+                        break;
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                  // send mes cho friend
+                 case (29): 
+                    try{
+                        String mes = params[1]; 
+                        String friendName = params[2];
+                        Server.getServerThreadBUS().unicast(friendName, "29, "+ mes);
+                        Arrays.fill(params, null);
+                        break;
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
                 default:
                     Arrays.fill(params, null);
                     break;

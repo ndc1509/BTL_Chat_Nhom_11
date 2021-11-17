@@ -18,7 +18,7 @@ public class MySqlDB{
     static final String dbUrl = "jdbc:mysql://localhost:3306/chat";
     static final String dbUsername = "root";
     static final String jdbcDriver = "com.mysql.cj.jdbc.Driver";
-    static final String dbPassword = "";
+    static final String dbPassword = "minhbom4268";
     private Connection con = null;
     
     public MySqlDB(){
