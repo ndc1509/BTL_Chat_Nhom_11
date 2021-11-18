@@ -15,6 +15,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,9 +30,11 @@ public class Client {
     private Socket clientSocket;
     private LoginView loginView;
     private MainMenu mainMenu;
-    private ChatView chatView;
+    
     private RequestView requestView;
     private Account account;
+    
+    private HashMap listChatView = new HashMap();
     
     private String clientResponse;
     private String serverResponse;
@@ -55,9 +58,6 @@ public class Client {
         return frRequestList;
     }
     
-    public void setChatView(ChatView chatView){
-        this.chatView = chatView;
-    }
     public String getAccountName(){
         return account.getUsername();
     }
@@ -284,8 +284,9 @@ public class Client {
                 case(28):
                     try {
                        String friend = params[1];
-                       chatView = new ChatView(this, account.getUsername(), friend);
-                        Arrays.fill(params, null);
+                       ChatView newChatView = new ChatView(this, account.getUsername(), friend);
+                       listChatView.put(friend, newChatView);
+                       Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -295,7 +296,9 @@ public class Client {
                 case(29):
                     try {
                         String mes = params[1];
-                        chatView.addMess(mes);
+                        String friendName = params[2];
+                        ChatView tmp = (ChatView) listChatView.get(friendName);
+                        tmp.addMess(mes);
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
@@ -362,7 +365,8 @@ public class Client {
     public void sendRequestChat(String friendName){
         try {
             sendMsg("28," + friendName);
-            chatView = new ChatView(this, account.getUsername(), friendName);
+            ChatView newChatView = new ChatView(this, account.getUsername(), friendName);
+            listChatView.put(friendName, newChatView);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -374,6 +378,10 @@ public class Client {
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void closeChat(String friend){
+        listChatView.remove(friend);
     }
 
     public void viewRequest() {

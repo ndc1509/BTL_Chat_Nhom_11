@@ -191,7 +191,7 @@ public class ServerThread implements Runnable{
                         e.printStackTrace();
                     }
                     break;
-                // yeu cau tro chuyen 48,username
+                // yeu cau tro chuyen 28,username
                 case (28): 
                     try{
                         String friendName = params[1]; 
@@ -207,7 +207,7 @@ public class ServerThread implements Runnable{
                     try{
                         String mes = params[1]; 
                         String friendName = params[2];
-                        Server.getServerThreadBUS().unicast(friendName, "29, "+ mes);
+                        Server.getServerThreadBUS().unicast(friendName, "29, "+ mes + "," + account.getUsername());
                         Arrays.fill(params, null);
                         break;
                     }catch (Exception e){
