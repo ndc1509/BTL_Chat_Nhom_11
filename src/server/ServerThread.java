@@ -108,7 +108,6 @@ public class ServerThread implements Runnable{
                             this.account = getAccount(username);
                             write("0," + authenticationFlag.toString());  
                             writeObj(account);
-                            log(account.getId() + " " + account.getUsername());
                             if(getOnlineAccounts()!="")
                                 write("50" + getOnlineAccounts());
                             Server.getServerThreadBUS().boardcast(clientNumber,"51" + "," + account.getUsername());
@@ -287,7 +286,7 @@ public class ServerThread implements Runnable{
         public String getFriends(){
             String str = "";
             try{
-                List<String> list = MySqlDB.getFriends(account.getUsername());                
+                List<String> list = MySqlDB.getFriends(account.getId());                
                 if(list!=null){
                     for(int i=0; i<list.size(); i++){                        
                         str += "," + list.get(i);
@@ -316,7 +315,7 @@ public class ServerThread implements Runnable{
         public String getFriendRequest(){
             String str = "";
             try{
-                ArrayList<String> list = MySqlDB.getFriendRequest(account.getUsername());                
+                ArrayList<String> list = MySqlDB.getFriendRequest(account.getId());                
                 if(list!=null){
                     for(int i=0; i<list.size(); i++){                        
                         str += "," + list.get(i);
@@ -330,15 +329,15 @@ public class ServerThread implements Runnable{
         }
         
         public Boolean sendFriendRequest(String username){
-            return  MySqlDB.sendFriendRequest(account.getUsername(), username);
+            return  MySqlDB.sendFriendRequest(account.getId(), username);
         }
         
         public void acceptFriendRequest(String username){
-            MySqlDB.acceptFriendRequest(username, account.getUsername());
+            MySqlDB.acceptFriendRequest(username, account.getId());
         }
         
         public void declineFriendRequest(String username){
-            MySqlDB.declineFriendRequest(username, account.getUsername());
+            MySqlDB.declineFriendRequest(username, account.getId());
         }
         
         //Lam viec voi file

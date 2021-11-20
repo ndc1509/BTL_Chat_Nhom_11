@@ -158,15 +158,14 @@ public class MySqlDB{
 //        return usersArr;
 //    }
     //Lay danh sach ban be
-    public static List<String> getFriends(String user) throws SQLException, ClassNotFoundException{
+    public static List<String> getFriends(int id) throws SQLException, ClassNotFoundException{
         Connection con = null;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        String query = "SELECT user2 FROM friendship WHERE "
-                + "user1 = ?";
+        String query = "select username from account where id in (select user2 from friendship where user1 = ?)";
         PreparedStatement statement = con.prepareStatement(query);
-        statement.setString(1, user);
+        statement.setInt(1, id);
         
         ResultSet result =  statement.executeQuery();
 
@@ -182,18 +181,21 @@ public class MySqlDB{
     }
     
     //Them ban 
-    public static Boolean addFriend(String user1, String user2) {
+    public static Boolean addFriend(int id1, String user2) {
         Connection con = null;
         try {   
             Class.forName(jdbcDriver);
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-        
+            
+            Account friendAcc = getAccount(user2);
+            int id2 = friendAcc.getId();
+            
             String query = "INSERT INTO frendship (user1, user2) VALUES (?,?), (?,?)";
             PreparedStatement statement = con.prepareStatement(query);
-            statement.setString(1, user1);
-            statement.setString(2, user2);
-            statement.setString(3, user2);
-            statement.setString(4, user1);
+            statement.setInt(1, id1);
+            statement.setInt(2, id2);
+            statement.setInt(3, id2);
+            statement.setInt(4, id1);
 
             statement.executeUpdate();
 
@@ -213,17 +215,19 @@ public class MySqlDB{
         }		
     }
     
-    public static Boolean sendFriendRequest(String user1, String user2){
+    public static Boolean sendFriendRequest(int id1, String user2){
         Connection con = null;
         boolean ok = false;
         try {   
             Class.forName(jdbcDriver);
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-        
+            
+            Account acc = getAccount(user2);
+            int id2 = acc.getId();
             String query = "INSERT INTO friendrequest (fromuser, touser, status) VALUES (?,?,0)";
             PreparedStatement statement = con.prepareStatement(query);
-            statement.setString(1, user1);
-            statement.setString(2, user2);
+            statement.setInt(1, id1);
+            statement.setInt(2, id2);
             int i = statement.executeUpdate();
             if(i == 0)
                 ok = false;
@@ -241,16 +245,16 @@ public class MySqlDB{
         return ok;
     }
     
-     public static ArrayList<String> getFriendRequest(String user2) throws Exception{
+     public static ArrayList<String> getFriendRequest(int id2) throws Exception{
         Connection con = null;
 
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
 
-        String query = "Select fromuser From friendrequest where touser = ? and status = 0";
+        String query = "select username from account where id in (select fromuser from friendrequest where touser = ? and status = 0)";
         PreparedStatement statement = con.prepareStatement(query);
 
-        statement.setString(1, user2);
+        statement.setInt(1, id2);
         ResultSet rs = statement.executeQuery();
         ArrayList<String> arr = new ArrayList<>();
         while(rs.next()){
@@ -260,25 +264,27 @@ public class MySqlDB{
 
     }
     
-    public static Boolean acceptFriendRequest(String user1, String user2){
+    public static Boolean acceptFriendRequest(String user1, int id2){
         Connection con = null;
         try {   
             Class.forName(jdbcDriver);
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-        
+            
+            Account acc = getAccount(user1);
+            int id1 = acc.getId();
             String query = "Update friendrequest set status = 1 "
                     + "where fromuser = ? and touser = ?";
             PreparedStatement statement = con.prepareStatement(query);
-            statement.setString(1, user1);
-            statement.setString(2, user2);
+            statement.setInt(1, id1);
+            statement.setInt(2, id2);
             statement.executeUpdate();
             
-            String query2 = "Insert into friendship values (?,?) , (?,?)";
+            String query2 = "Insert into friendship (user1, user2) values (?,?) , (?,?)";
             statement = con.prepareStatement(query2);
-            statement.setString(1, user1);
-            statement.setString(2, user2);
-            statement.setString(3, user2);
-            statement.setString(4, user1);
+            statement.setInt(1, id1);
+            statement.setInt(2, id2);
+            statement.setInt(3, id2);
+            statement.setInt(4, id1);
             statement.executeUpdate();
             statement.close();
             return true;
@@ -294,17 +300,20 @@ public class MySqlDB{
         }		
     }
     
-    public static Boolean declineFriendRequest(String user1, String user2){
+    public static Boolean declineFriendRequest(String user1, int id2){
         Connection con = null;
         try {   
             Class.forName(jdbcDriver);
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
+            Account acc = getAccount(user1);
+            int id1 = acc.getId();
+            
             String query = "DELETE FROM friendrequest "
                     + "where fromuser = ? and touser = ?";
             PreparedStatement statement = con.prepareStatement(query);
-            statement.setString(1, user1);
-            statement.setString(2, user2);
+            statement.setInt(1, id1);
+            statement.setInt(2, id2);
             statement.executeUpdate();
             statement.close();
             con.close();
