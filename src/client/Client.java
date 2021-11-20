@@ -19,7 +19,9 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
+import java.math.BigInteger;
 import java.net.Socket;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,7 +60,6 @@ public class Client {
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     
-    private int wait = 0;
     private FileInfo fileInfo = null;
     private String destDIR = "C:\\Users\\Cuong\\Documents\\NetBeansProjects\\Clone chat\\Chat_v1.1\\src\\server\\FileStorage\\";
     
@@ -73,19 +74,15 @@ public class Client {
         return frRequestList;
     }
     
-    public String getAccountName(){
-        return account.getUsername();
-    }
     public void login(String username, String password){
         try {
             clientResponse = packageString("0", username, password);
             sendMsg(clientResponse);
-            this.account = new Account(username, password); 
         } catch (Exception e) {
         }        
     }
     
-    public void register(String username, String password, String passwordConfirm){
+    public void register(String username, String password){
         try {
             clientResponse = packageString("1", username, password);
             sendMsg(clientResponse);        
@@ -127,9 +124,11 @@ public class Client {
                         int port = 19750;
                         log("Kết nối đến " + hostname + " port " + port);
                         clientSocket = new Socket(hostname, port);
+//                        oos = new ObjectOutputStream(clientSocket.getOutputStream());
+//                        ois = new ObjectInputStream(clientSocket.getInputStream());
                         in = new DataInputStream(clientSocket.getInputStream());
                         out = new DataOutputStream(clientSocket.getOutputStream());
-                        //oos = new ObjectOutputStream(clientSocket.getOutputStream());
+                        
                         if(clientSocket.isConnected())
                             log("Kết nối đến " + clientSocket.getRemoteSocketAddress() + " đã được thiết lập"); 
                         String serverResponse = receiveMsg();  
@@ -218,7 +217,9 @@ public class Client {
                 //Login
                 case (0):
                     try {
-                        if(params[1].equals("true")){                                          
+                        if(params[1].equals("true")){ 
+                            ois = new ObjectInputStream(clientSocket.getInputStream());
+                            this.account = (Account) ois.readObject();
                             MainMenu mainMenu = new MainMenu(this);
                             this.mainMenu = mainMenu;
                             mainMenu.setTitle(account.getUsername());
@@ -356,6 +357,23 @@ public class Client {
         out.flush();
     }
     
+    public static String encrypt(String string){
+        try{
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] messageDigest = md.digest(string.getBytes()); 
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashtext = no.toString(16);
+            while(hashtext.length() < 32){
+                hashtext = "0" + hashtext;
+            }
+            return hashtext;
+        } catch(Exception e){
+            e.printStackTrace();
+        } finally{
+            return "";
+        }    
+    }
+    
     public static void main(String[] args) {                
 
         try{
@@ -424,8 +442,6 @@ public class Client {
     public void viewFriends(){
         List<String> frOnline = new ArrayList<>(frList);
         List<String> frOffline = new ArrayList<>();
-        for(int i=0; i<frList.size(); i++)
-            System.out.println(frList.get(i));
         if(globalList.isEmpty()){
             frOffline = frList;
             mainMenu.setFrOfflineList(frOffline);
@@ -445,24 +461,14 @@ public class Client {
     }
     
     
-    public synchronized void sendFile(String source, String user){     
+    public void sendFile(String source, String user){     
         try{           
-            wait = 1;
             this.fileInfo = getFileInfo(source, destDIR);
             sendMsg("30," + user);
             oos = new ObjectOutputStream(clientSocket.getOutputStream());
             oos.writeObject(fileInfo);
-            log("Gui file thanh cong");
-            oos.flush();
-//            ois = new ObjectInputStream(clientSocket.getInputStream());
-//            fileInfo = (FileInfo) ois.readObject();
-//            if(fileInfo != null){
-//                System.out.println(fileInfo.getStatus());
-//            } else{
-//                System.err.println("DM chua duoc");
-//            }
-            
-            wait = 0;
+            log("Gửi file thành công");
+            oos.flush();       
         } catch(Exception e){
             e.printStackTrace();
         }

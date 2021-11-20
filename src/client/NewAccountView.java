@@ -131,7 +131,7 @@ public class NewAccountView extends javax.swing.JFrame {
             showErrorMessage("Xác nhận mật khẩu không đúng", "Đăng ký lỗi");
             return;
         }
-        controller.register(username, password, passwordConfirm);
+        controller.register(username, password);
         loginView.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_btnRegActionPerformed

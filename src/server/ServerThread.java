@@ -39,6 +39,8 @@ public class ServerThread implements Runnable{
         private int clientNumber;
         private DataInputStream in;
         private DataOutputStream out;
+        private ObjectInputStream ois;
+        private ObjectOutputStream oos;
         private boolean isClosed; 
         private Account account;
         
@@ -103,8 +105,10 @@ public class ServerThread implements Runnable{
                         if(authenticate(username, password)){
                             setOnline(username);
                             authenticationFlag = true;
-                            account = new Account(username, true);
-                            write("0," + authenticationFlag.toString());                           
+                            this.account = getAccount(username);
+                            write("0," + authenticationFlag.toString());  
+                            writeObj(account);
+                            log(account.getId() + " " + account.getUsername());
                             if(getOnlineAccounts()!="")
                                 write("50" + getOnlineAccounts());
                             Server.getServerThreadBUS().boardcast(clientNumber,"51" + "," + account.getUsername());
@@ -134,7 +138,6 @@ public class ServerThread implements Runnable{
                             write("1,true");
                         else
                             write("1,false");
-
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
@@ -242,9 +245,15 @@ public class ServerThread implements Runnable{
         }
         
         public static Boolean authenticate(String username, String password) throws Exception{
-            if(password.equals(MySqlDB.getPassword(username)))
+            String pass = MySqlDB.getPassword(username);
+            if(password.equals(pass))
                 return true;
             return false;
+        }
+        
+        public static Account getAccount(String username) throws Exception{
+            Account acc = MySqlDB.getAccount(username);
+            return acc;
         }
         
         public static void setOnline(String username) throws Exception{
@@ -295,6 +304,13 @@ public class ServerThread implements Runnable{
             log("Server: " + message);
             out.writeUTF(message);
             out.flush();
+        }
+        
+        public void writeObj(Object object) throws IOException{
+            log("Server gửi object");
+            oos = new ObjectOutputStream(clientSocket.getOutputStream());
+            oos.writeObject(object);
+            oos.flush();
         }
         //Ket ban 
         public String getFriendRequest(){
@@ -353,32 +369,17 @@ public class ServerThread implements Runnable{
             return true;
         }
         
-        public synchronized void getFile(){
-            ObjectInputStream ois = null;
-            ObjectOutputStream oos = null;
+        public void getFile(){
             
             try{
                 ois = new ObjectInputStream(clientSocket.getInputStream());
                 FileInfo fileInfo = (FileInfo) ois.readObject();
                 if(fileInfo != null){
                     createFile(fileInfo);
-                }
-//                oos = new ObjectOutputStream(clientSocket.getOutputStream());
-//                fileInfo.setStatus("success");
-//                fileInfo.setDataBytes(null);
-//                
-//                oos.writeObject(fileInfo);                
-                log("Nhan file thanh cong");
+                    log("Nhan file thanh cong");
+                }                
             } catch(Exception e){
                 e.printStackTrace();
             }
-//            } finally{
-//                try {
-//                    ois.close();
-////                    oos.close();
-//                } catch (IOException ex) {
-//                    ex.printStackTrace();
-//                }
-//            }
         }
     }

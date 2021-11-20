@@ -5,28 +5,29 @@
  */
 package model;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Cuong
  */
-public class Account {
+public class Account implements Serializable{
+    private static final long serialVersionUID = 100L;
+    
     private int id;
     private String username;
     private String password;
-    private boolean online;
+    private int online;
 
-    public Account(String username, String password, boolean online) {
+    public Account(int id, String username, String password, int online) {
+        this.id = id;
         this.username = username;
         this.password = password;
         this.online = online;
     }
-
-    public Account(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
     
-    public Account(String username, boolean online){
+    public Account(int id, String username, int online){
+        this.id = id;
         this.username = username;
         this.online = online;
     }
@@ -55,11 +56,11 @@ public class Account {
         this.password = password;
     }
 
-    public boolean isOnline() {
+    public int isOnline() {
         return online;
     }
 
-    public void setOnline(boolean online) {
+    public void setOnline(int online) {
         this.online = online;
     }
     

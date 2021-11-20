@@ -54,15 +54,40 @@ public class MySqlDB{
         PreparedStatement ps = con.prepareStatement(query);
         ps.setString(1, username);
         ResultSet resultSet = ps.executeQuery();
-        
+        Account acc = null;
         while(resultSet.next()){
-            pass = resultSet.getString(1);
+            pass = resultSet.getString(1);            
         }
         resultSet.close();
         ps.close();
         con.close();
         
         return pass;
+    }
+    //Lay account
+    public static Account getAccount(String username) throws SQLException, ClassNotFoundException{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+        String query = "SELECT * FROM account where username = ?;";
+        
+        PreparedStatement ps = con.prepareStatement(query);
+        ps.setString(1, username);
+        ResultSet resultSet = ps.executeQuery();
+        Account acc = null;
+        while(resultSet.next()){
+            int id = resultSet.getInt(1);
+            String name = resultSet.getString(2);
+            String password = resultSet.getString(3);
+            int isOnline = resultSet.getInt(4);
+            acc = new Account(id, name, password, isOnline);
+        }
+        resultSet.close();
+        ps.close();
+        con.close();
+        
+        return acc;
     }
     //Dang ki
     public static Boolean addAccount(String username, String password) throws SQLException, ClassNotFoundException{
@@ -97,41 +122,41 @@ public class MySqlDB{
             }
         }
     }
-    //K hieu
-    public static String[] getAccount(String username) throws SQLException, ClassNotFoundException{
-        Connection con = null;
-        Class.forName(jdbcDriver);
-        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-        
-        String query = "SELECT username FROM account , friendship"
-                + "WHERE username != 'admin' "
-                + "AND username != ? "
-                + "AND isOnline = 1 "
-                + "AND username = user1 "
-                + "AND user2 = ?";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, username);
-        ps.setString(2, username);  
-        
-        ResultSet result =  ps.executeQuery();
-        
-        int count = 0;
-        result.last();
-        count = result.getRow();
-        result.beforeFirst();
-
-        String[] usersArr = new String[count];
-        int i = 0;
-        while(result.next()) {			
-            usersArr[i] = result.getString(1);
-            i++;
-        }
-
-        ps.close();
-        con.close();
-
-        return usersArr;
-    }
+//    //K hieu
+//    public static String[] getAccount(String username) throws SQLException, ClassNotFoundException{
+//        Connection con = null;
+//        Class.forName(jdbcDriver);
+//        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+//        
+//        String query = "SELECT username FROM account , friendship"
+//                + "WHERE username != 'admin' "
+//                + "AND username != ? "
+//                + "AND isOnline = 1 "
+//                + "AND username = user1 "
+//                + "AND user2 = ?";
+//        PreparedStatement ps = con.prepareStatement(query);
+//        ps.setString(1, username);
+//        ps.setString(2, username);  
+//        
+//        ResultSet result =  ps.executeQuery();
+//        
+//        int count = 0;
+//        result.last();
+//        count = result.getRow();
+//        result.beforeFirst();
+//
+//        String[] usersArr = new String[count];
+//        int i = 0;
+//        while(result.next()) {			
+//            usersArr[i] = result.getString(1);
+//            i++;
+//        }
+//
+//        ps.close();
+//        con.close();
+//
+//        return usersArr;
+//    }
     //Lay danh sach ban be
     public static List<String> getFriends(String user) throws SQLException, ClassNotFoundException{
         Connection con = null;
