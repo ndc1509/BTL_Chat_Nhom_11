@@ -5,10 +5,17 @@
  */
 package server;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -16,7 +23,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.Account;
+import model.FileInfo;
 import static server.Server.log;
 
 /**
@@ -27,8 +37,8 @@ public class ServerThread implements Runnable{
         
         private Socket clientSocket;
         private int clientNumber;
-        private BufferedReader in;
-        private BufferedWriter out;
+        private DataInputStream in;
+        private DataOutputStream out;
         private boolean isClosed; 
         private Account account;
         
@@ -52,13 +62,13 @@ public class ServerThread implements Runnable{
             String clientResponse;
             
             try{
-                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+                in = new DataInputStream(clientSocket.getInputStream());
+                out = new DataOutputStream(clientSocket.getOutputStream());
                 
                 write("Bạn là client #" + clientNumber);
                 
                 while(!isClosed){
-                    clientResponse = in.readLine();
+                    clientResponse = in.readUTF();
                     log("Client: " + clientResponse);
                     opcode(clientResponse, out);
                 }
@@ -78,7 +88,7 @@ public class ServerThread implements Runnable{
         }
         
         //Ma lenh thuc thi 
-        public void opcode(String clientResponse, BufferedWriter out) throws Exception{
+        public void opcode(String clientResponse, DataOutputStream out) throws Exception{
             Boolean authenticationFlag = false;
             String[] params = clientResponse.split(",");
             int code = Integer.parseInt(params[0]);
@@ -207,10 +217,21 @@ public class ServerThread implements Runnable{
                     try{
                         String mes = params[1]; 
                         String friendName = params[2];
-                        Server.getServerThreadBUS().unicast(friendName, "29, "+ mes + "," + account.getUsername());
+                        Server.getServerThreadBUS().unicast(friendName, "29,"+ mes + "," + account.getUsername());
                         Arrays.fill(params, null);
                         break;
                     }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                //Nhan file
+                case(30):
+                    try {
+                        String user = params[1];
+                        getFile();
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     break;
@@ -272,11 +293,10 @@ public class ServerThread implements Runnable{
         
         public void write(String message) throws IOException{
             log("Server: " + message);
-            out.write(message);
-            out.newLine();
+            out.writeUTF(message);
             out.flush();
         }
-        
+        //Ket ban 
         public String getFriendRequest(){
             String str = "";
             try{
@@ -303,5 +323,62 @@ public class ServerThread implements Runnable{
         
         public void declineFriendRequest(String username){
             MySqlDB.declineFriendRequest(username, account.getUsername());
+        }
+        
+        //Lam viec voi file
+        private boolean createFile(FileInfo fileInfo){
+            BufferedOutputStream bos = null;
+            
+            try {
+                if(fileInfo != null){
+                    log(fileInfo.getDestDIR() + fileInfo.getName());
+                    File fileReceive = new File(fileInfo.getDestDIR() + fileInfo.getName());
+                    bos = new BufferedOutputStream(new FileOutputStream(fileReceive));                    
+                    bos.write(fileInfo.getDataBytes());
+                    bos.flush();
+                    log("Tao file thanh cong");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            } finally{
+                try {
+                    if(bos != null){
+                        bos.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return true;
+        }
+        
+        public synchronized void getFile(){
+            ObjectInputStream ois = null;
+            ObjectOutputStream oos = null;
+            
+            try{
+                ois = new ObjectInputStream(clientSocket.getInputStream());
+                FileInfo fileInfo = (FileInfo) ois.readObject();
+                if(fileInfo != null){
+                    createFile(fileInfo);
+                }
+//                oos = new ObjectOutputStream(clientSocket.getOutputStream());
+//                fileInfo.setStatus("success");
+//                fileInfo.setDataBytes(null);
+//                
+//                oos.writeObject(fileInfo);                
+                log("Nhan file thanh cong");
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+//            } finally{
+//                try {
+//                    ois.close();
+////                    oos.close();
+//                } catch (IOException ex) {
+//                    ex.printStackTrace();
+//                }
+//            }
         }
     }

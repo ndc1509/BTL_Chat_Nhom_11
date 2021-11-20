@@ -6,6 +6,7 @@
 package client;
 
 import java.awt.event.KeyEvent;
+import javax.swing.JFileChooser;
 
 /**
  *
@@ -53,8 +54,9 @@ public class ChatView extends javax.swing.JFrame{
         txtLog = new javax.swing.JTextArea();
         txtMes = new javax.swing.JTextField();
         btStopChat = new javax.swing.JButton();
+        selectFile = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         txtLog.setEditable(false);
         txtLog.setColumns(20);
@@ -80,17 +82,29 @@ public class ChatView extends javax.swing.JFrame{
             }
         });
 
+        selectFile.setText("Chọn file");
+        selectFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectFileActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(btStopChat)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(txtMes, javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(txtMes, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(29, 29, 29)
+                        .addComponent(selectFile)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 152, Short.MAX_VALUE)
+                        .addComponent(btStopChat)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -101,7 +115,9 @@ public class ChatView extends javax.swing.JFrame{
                 .addGap(49, 49, 49)
                 .addComponent(txtMes, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(btStopChat)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btStopChat)
+                    .addComponent(selectFile))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -128,14 +144,33 @@ public class ChatView extends javax.swing.JFrame{
        this.dispose();
     }//GEN-LAST:event_btStopChatActionPerformed
 
+    private void selectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectFileActionPerformed
+        // TODO add your handling code here:
+        String path = getFile();
+        if(path != null)
+            clientController.sendFile(path, friendName);
+    }//GEN-LAST:event_selectFileActionPerformed
+
     /**
      * @param args the command line arguments
      */
 
-
+    public String getFile(){
+        String path = null;
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file");
+        int r = fileChooser.showSaveDialog(null);
+        if(r == JFileChooser.APPROVE_OPTION){
+            path = fileChooser.getSelectedFile().getAbsolutePath();
+            txtLog.append(yourName + ": Đã gửi file " +  fileChooser.getSelectedFile().getName() + '\n');
+        }
+        return path;
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btStopChat;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton selectFile;
     private javax.swing.JTextArea txtLog;
     private javax.swing.JTextField txtMes;
     // End of variables declaration//GEN-END:variables

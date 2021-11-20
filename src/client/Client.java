@@ -7,10 +7,17 @@ package client;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -21,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import model.Account;
+import model.FileInfo;
 
 /**
  *
@@ -30,6 +38,7 @@ public class Client {
     private Socket clientSocket;
     private LoginView loginView;
     private MainMenu mainMenu;
+    private ChatView chatView;
     
     private RequestView requestView;
     private Account account;
@@ -44,8 +53,14 @@ public class Client {
     private ArrayList<String> frRequestList = new ArrayList<>();
     private ArrayList<String> frList = new ArrayList<>();
     
-    private BufferedReader in;
-    private BufferedWriter out;
+    private DataInputStream in;
+    private DataOutputStream out;
+    private ObjectOutputStream oos;
+    private ObjectInputStream ois;
+    
+    private int wait = 0;
+    private FileInfo fileInfo = null;
+    private String destDIR = "C:\\Users\\Cuong\\Documents\\NetBeansProjects\\Clone chat\\Chat_v1.1\\src\\server\\FileStorage\\";
     
     public Client(){               
         LoginView loginView = new LoginView(this);
@@ -112,14 +127,15 @@ public class Client {
                         int port = 19750;
                         log("Kết nối đến " + hostname + " port " + port);
                         clientSocket = new Socket(hostname, port);
-                        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                        out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+                        in = new DataInputStream(clientSocket.getInputStream());
+                        out = new DataOutputStream(clientSocket.getOutputStream());
+                        //oos = new ObjectOutputStream(clientSocket.getOutputStream());
                         if(clientSocket.isConnected())
                             log("Kết nối đến " + clientSocket.getRemoteSocketAddress() + " đã được thiết lập"); 
                         String serverResponse = receiveMsg();  
                         
                         while(!clientSocket.isClosed()){
-                            serverResponse = receiveMsg();
+                            serverResponse = receiveMsg();                             
                             opcode(serverResponse);
                         }                
                     } catch(Exception e){
@@ -305,6 +321,18 @@ public class Client {
                         e.printStackTrace();
                     }
                     break; 
+                //ntruyen file
+                case(31):
+                    try {
+                        oos = new ObjectOutputStream(clientSocket.getOutputStream());
+                        
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break; 
+                    
                 default:
                     Arrays.fill(params, null);                       
                     break;
@@ -314,7 +342,7 @@ public class Client {
     public String receiveMsg(){
         String serverResponse = null;
         try{
-            serverResponse = in.readLine();
+            serverResponse = in.readUTF();
             log("Server: " + serverResponse);
         } catch(Exception e){
             e.printStackTrace();
@@ -324,8 +352,7 @@ public class Client {
     
     public void sendMsg(String clientResponse) throws IOException{
         log("Client: " + clientResponse);
-        out.write(clientResponse);
-        out.newLine();
+        out.writeUTF(clientResponse);
         out.flush();
     }
     
@@ -365,8 +392,8 @@ public class Client {
     public void sendRequestChat(String friendName){
         try {
             sendMsg("28," + friendName);
-            ChatView newChatView = new ChatView(this, account.getUsername(), friendName);
-            listChatView.put(friendName, newChatView);
+            this.chatView = new ChatView(this, account.getUsername(), friendName);
+            listChatView.put(friendName, chatView);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -415,5 +442,56 @@ public class Client {
             mainMenu.setFrOfflineList(frOffline);
             mainMenu.setFrOnlineList(frOnline);
         }
+    }
+    
+    
+    public synchronized void sendFile(String source, String user){     
+        try{           
+            wait = 1;
+            this.fileInfo = getFileInfo(source, destDIR);
+            sendMsg("30," + user);
+            oos = new ObjectOutputStream(clientSocket.getOutputStream());
+            oos.writeObject(fileInfo);
+            log("Gui file thanh cong");
+            oos.flush();
+//            ois = new ObjectInputStream(clientSocket.getInputStream());
+//            fileInfo = (FileInfo) ois.readObject();
+//            if(fileInfo != null){
+//                System.out.println(fileInfo.getStatus());
+//            } else{
+//                System.err.println("DM chua duoc");
+//            }
+            
+            wait = 0;
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+    private FileInfo getFileInfo(String srcFilePath, String destDIR){
+        FileInfo fileInfo = null;
+        BufferedInputStream bis = null;
+        try{
+            File sourceFile = new File(srcFilePath);
+            bis = new BufferedInputStream(new FileInputStream(sourceFile));
+            fileInfo = new FileInfo();
+            byte[] fileBytes = new byte[(int) sourceFile.length()];
+            
+            bis.read(fileBytes, 0, fileBytes.length);
+            fileInfo.setName(sourceFile.getName());
+            fileInfo.setDataBytes(fileBytes);
+            fileInfo.setDestDIR(destDIR);
+        } catch(Exception e){
+            e.printStackTrace();
+        } finally{
+            try {
+                if(bis != null){
+                    bis.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return fileInfo;
     }
 }
