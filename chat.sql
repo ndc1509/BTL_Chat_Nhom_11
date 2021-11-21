@@ -25,12 +25,13 @@ DROP TABLE IF EXISTS `account`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `account` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `isOnline` int NOT NULL,
-  PRIMARY KEY (`username`),
+  PRIMARY KEY (`id`),
   UNIQUE KEY `username_UNIQUE` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,8 +40,37 @@ CREATE TABLE `account` (
 
 LOCK TABLES `account` WRITE;
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES ('ad','ad',0),('admin','admin',0),('asd','123',0),('cuong','123',0),('ez','123',0),('gg','123',0),('hieu','123',0),('ndc','123',0),('xyz','123',0);
+INSERT INTO `account` VALUES (1,'ad','ad',0),(2,'admin','admin',0),(3,'asd','123',0),(4,'cuong','123',0),(5,'ez','123',0),(6,'gg','123',0),(7,'hieu','123',0),(8,'ndc','123',0),(9,'xyz','123',0),(10,'new','123',0);
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `filesharing`
+--
+
+DROP TABLE IF EXISTS `filesharing`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `filesharing` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `file_name` varchar(45) NOT NULL,
+  `sender` int NOT NULL,
+  `receiver` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_sender_idx` (`sender`),
+  KEY `fk_receiver_idx` (`receiver`),
+  CONSTRAINT `fk_receiver` FOREIGN KEY (`receiver`) REFERENCES `account` (`id`),
+  CONSTRAINT `fk_sender` FOREIGN KEY (`sender`) REFERENCES `account` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `filesharing`
+--
+
+LOCK TABLES `filesharing` WRITE;
+/*!40000 ALTER TABLE `filesharing` DISABLE KEYS */;
+/*!40000 ALTER TABLE `filesharing` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -51,11 +81,16 @@ DROP TABLE IF EXISTS `friendrequest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `friendrequest` (
-  `fromuser` varchar(255) NOT NULL,
-  `touser` varchar(255) NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `fromuser` int NOT NULL,
+  `touser` int NOT NULL,
   `status` int NOT NULL,
-  PRIMARY KEY (`fromuser`,`touser`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`id`),
+  KEY `fk_fromuser_idx` (`fromuser`),
+  KEY `fk_touser_idx` (`touser`),
+  CONSTRAINT `fk_fromuser` FOREIGN KEY (`fromuser`) REFERENCES `account` (`id`),
+  CONSTRAINT `fk_touser` FOREIGN KEY (`touser`) REFERENCES `account` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -64,7 +99,7 @@ CREATE TABLE `friendrequest` (
 
 LOCK TABLES `friendrequest` WRITE;
 /*!40000 ALTER TABLE `friendrequest` DISABLE KEYS */;
-INSERT INTO `friendrequest` VALUES ('ndc','admin',1),('xyz','ad',1);
+INSERT INTO `friendrequest` VALUES (1,2,3,0),(2,2,4,1),(3,2,5,1),(4,3,4,0),(5,1,3,0),(7,10,1,1),(8,6,2,1),(9,1,8,1),(10,6,1,1),(11,6,5,1);
 /*!40000 ALTER TABLE `friendrequest` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -76,10 +111,15 @@ DROP TABLE IF EXISTS `friendship`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `friendship` (
-  `user1` varchar(255) NOT NULL,
-  `user2` varchar(255) NOT NULL,
-  PRIMARY KEY (`user1`,`user2`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user1` int NOT NULL,
+  `user2` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_user1_idx` (`user1`),
+  KEY `fk_user2_idx` (`user2`),
+  CONSTRAINT `fk_user1` FOREIGN KEY (`user1`) REFERENCES `account` (`id`),
+  CONSTRAINT `fk_user2` FOREIGN KEY (`user2`) REFERENCES `account` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -88,7 +128,7 @@ CREATE TABLE `friendship` (
 
 LOCK TABLES `friendship` WRITE;
 /*!40000 ALTER TABLE `friendship` DISABLE KEYS */;
-INSERT INTO `friendship` VALUES ('ad','admin'),('ad','ez'),('ad','gg'),('ad','hieu'),('ad','ndc'),('ad','xyz'),('admin','ad'),('admin','cuong'),('admin','ndc'),('cuong','admin'),('cuong','hieu'),('ez','ad'),('gg','ad'),('hieu','ad'),('hieu','cuong'),('ndc','ad'),('ndc','admin'),('xyz','ad');
+INSERT INTO `friendship` VALUES (1,1,2),(2,2,1),(3,3,1),(4,1,3),(5,1,4),(6,4,1),(7,1,5),(8,5,1),(19,1,8),(20,8,1),(21,6,1),(22,1,6),(23,6,5),(24,5,6);
 /*!40000 ALTER TABLE `friendship` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -101,4 +141,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-07 19:19:16
+-- Dump completed on 2021-11-21 18:15:18
