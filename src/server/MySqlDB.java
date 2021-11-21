@@ -350,6 +350,51 @@ public class MySqlDB{
         }
         return list;
     }
+    
+    //Them file moi
+    public static void addFile(String filename, int id1, String user2){
+        Connection con = null;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+            
+            Account acc = getAccount(user2);
+            int id2 = acc.getId();
+            String query = "INSERT INTO filesharing (file_name, sender, receiver) VALUES (?,?,?)";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setString(1, filename);
+            statement.setInt(2, id1);
+            statement.setInt(3, id2);
+            statement.executeUpdate();
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }
+    }
+    //Lay file do user1 gui cho id2
+    public static List<String> getFile(String user1, int id2) throws Exception{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+        int id1 = getAccount(user1).getId();
+        ArrayList<String> list = new ArrayList<>();
+        String query = "Select file_name from filesharing where sender = ? and receiver = ?";
+        PreparedStatement statement = con.prepareStatement(query);
+        statement.setInt(1, id1);
+        statement.setInt(2, id2);
+        
+        ResultSet rs = statement.executeQuery();
+        while(rs.next()){            
+            list.add(rs.getString(1));
+        }
+        return list;
+    }
 }
 
 

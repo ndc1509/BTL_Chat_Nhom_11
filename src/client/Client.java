@@ -8,12 +8,14 @@ package client;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -41,6 +43,7 @@ public class Client {
     private LoginView loginView;
     private MainMenu mainMenu;
     private ChatView chatView;
+    private FileList fileListView;
     
     private RequestView requestView;
     private Account account;
@@ -62,7 +65,9 @@ public class Client {
     
     private FileInfo fileInfo = null;
     private String destDIR = "C:\\Users\\Cuong\\Documents\\NetBeansProjects\\Clone chat\\Chat_v1.1\\src\\server\\FileStorage\\";
+    private String saveDIR = "C:\\Users\\Cuong\\Documents\\NetBeansProjects\\Clone chat\\Chat_v1.1\\src\\client\\FileStorage\\";
     
+    private List<FileInfo> receiveFile = new ArrayList<>();
     public Client(){               
         LoginView loginView = new LoginView(this);
         loginView.setVisible(true);
@@ -322,17 +327,34 @@ public class Client {
                         e.printStackTrace();
                     }
                     break; 
-                //ntruyen file
+                //nhan danh sach file dc gui boi 1 nguoi ban
                 case(31):
                     try {
-                        oos = new ObjectOutputStream(clientSocket.getOutputStream());
-                        
+                        receiveFile.clear();
+                        String sender = params[1];
+                        int size = Integer.parseInt(params[2]);
+                        for(int i=0; i<size; i++){
+                            FileInfo file = (FileInfo) ois.readObject();
+                            log("Da nhan 1 object");
+                            receiveFile.add(file);
+                        }
+                        viewFileList(receiveFile, sender);
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     break; 
+                //Tai file tu server
+                case(32):
+                    try {
+                        getFile();
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;     
                     
                 default:
                     Arrays.fill(params, null);                       
@@ -460,7 +482,7 @@ public class Client {
         }
     }
     
-    
+     //Lam viec voi file
     public void sendFile(String source, String user){     
         try{           
             this.fileInfo = getFileInfo(source, destDIR);
@@ -468,7 +490,9 @@ public class Client {
             oos = new ObjectOutputStream(clientSocket.getOutputStream());
             oos.writeObject(fileInfo);
             log("Gửi file thành công");
-            oos.flush();       
+            oos.flush();    
+            sendMsg("29,"+ "Đã gửi file " + fileInfo.getName() + "," + user);
+            fileInfo = null;
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -487,6 +511,7 @@ public class Client {
             fileInfo.setName(sourceFile.getName());
             fileInfo.setDataBytes(fileBytes);
             fileInfo.setDestDIR(destDIR);
+            fileInfo.setSender(account.getUsername());
         } catch(Exception e){
             e.printStackTrace();
         } finally{
@@ -499,5 +524,80 @@ public class Client {
             }
         }
         return fileInfo;
+    }
+    
+   
+    private boolean createFile(FileInfo fileInfo){
+        BufferedOutputStream bos = null;
+
+        try {
+            if(fileInfo != null){
+                File fileReceive = new File(saveDIR + fileInfo.getName());
+                bos = new BufferedOutputStream(new FileOutputStream(fileReceive));                    
+                bos.write(fileInfo.getDataBytes());
+                bos.flush();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally{
+            try {
+                if(bos != null){
+                    bos.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
+    public void getFile(){            
+        try{
+            FileInfo file = (FileInfo) ois.readObject();
+            if(file != null){
+                createFile(file);
+                fileListView.showMessage("Tai file thanh cong");
+            } else{
+                fileListView.showMessage("Tai file that bai");
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+    //Yeu cau danh sach file ban be gui
+    public void requestFileList(String user){
+        try {
+            sendMsg("31," + user);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    //Show danh sach file
+    public void viewFileList(List<FileInfo> list, String sender){
+        List<String> fileName = new ArrayList<>();
+        this.fileListView = new FileList(this, sender);
+        
+        for(int i=0; i<receiveFile.size(); i++){
+            if(receiveFile.get(i).getSender().equals(sender)){
+                fileName.add(receiveFile.get(i).getName());
+                log(fileName.get(i));
+            }
+        }
+        if(fileName.size() >0){
+            fileListView.setFiles(fileName);
+        }
+            
+        fileListView.setTitle("File được gửi bởi " + sender);
+        fileListView.setVisible(true);
+    }
+    //Tai file
+    public void download(String file){
+        try {
+            sendMsg("32," + file);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

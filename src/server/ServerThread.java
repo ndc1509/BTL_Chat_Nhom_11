@@ -5,12 +5,14 @@
  */
 package server;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -43,7 +45,9 @@ public class ServerThread implements Runnable{
         private ObjectOutputStream oos;
         private boolean isClosed; 
         private Account account;
+        private FileInfo fileInfo;
         
+        private String srcFilePath = "C:\\Users\\Cuong\\Documents\\NetBeansProjects\\Clone chat\\Chat_v1.1\\src\\server\\FileStorage\\";
         public int getClientNumber(){
             return clientNumber;
         }
@@ -106,7 +110,8 @@ public class ServerThread implements Runnable{
                             setOnline(username);
                             authenticationFlag = true;
                             this.account = getAccount(username);
-                            write("0," + authenticationFlag.toString());  
+                            write("0," + authenticationFlag.toString()); 
+                            oos = new ObjectOutputStream(clientSocket.getOutputStream());
                             writeObj(account);
                             if(getOnlineAccounts()!="")
                                 write("50" + getOnlineAccounts());
@@ -214,8 +219,8 @@ public class ServerThread implements Runnable{
                         e.printStackTrace();
                     }
                     break;
-                  // send mes cho friend
-                 case (29): 
+                // send mes cho friend
+                case (29): 
                     try{
                         String mes = params[1]; 
                         String friendName = params[2];
@@ -231,6 +236,34 @@ public class ServerThread implements Runnable{
                     try {
                         String user = params[1];
                         getFile();
+                        MySqlDB.addFile(fileInfo.getName(), account.getId(), user);
+                        fileInfo = null;
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                //Lay danh sach file duoc share
+                case (31):
+                    try{
+                        String user = params[1];
+                        List<FileInfo> files = getFilesFromSender(user);
+                        write("31,"+ user + "," + files.size());
+                        for(int i=0; i<files.size(); i++)
+                            writeObj(files.get(i));
+                        Arrays.fill(params, null);
+                        break;
+                    } catch(Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                //Yeu cau tai file
+                case (32):
+                    try {
+                        String filename = params[1];
+                        write("32");
+                        sendFile(srcFilePath + filename);
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
@@ -307,7 +340,7 @@ public class ServerThread implements Runnable{
         
         public void writeObj(Object object) throws IOException{
             log("Server gửi object");
-            oos = new ObjectOutputStream(clientSocket.getOutputStream());
+            
             oos.writeObject(object);
             oos.flush();
         }
@@ -351,7 +384,6 @@ public class ServerThread implements Runnable{
                     bos = new BufferedOutputStream(new FileOutputStream(fileReceive));                    
                     bos.write(fileInfo.getDataBytes());
                     bos.flush();
-                    log("Tao file thanh cong");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -368,11 +400,10 @@ public class ServerThread implements Runnable{
             return true;
         }
         
-        public void getFile(){
-            
+        public void getFile(){            
             try{
                 ois = new ObjectInputStream(clientSocket.getInputStream());
-                FileInfo fileInfo = (FileInfo) ois.readObject();
+                this.fileInfo = (FileInfo) ois.readObject();
                 if(fileInfo != null){
                     createFile(fileInfo);
                     log("Nhan file thanh cong");
@@ -381,4 +412,58 @@ public class ServerThread implements Runnable{
                 e.printStackTrace();
             }
         }
+        
+        private FileInfo getFileInfo(String srcFilePath){
+            FileInfo fileInfo = null;
+            BufferedInputStream bis = null;
+            try{
+                File sourceFile = new File(srcFilePath);
+                bis = new BufferedInputStream(new FileInputStream(sourceFile));
+                fileInfo = new FileInfo();
+                byte[] fileBytes = new byte[(int) sourceFile.length()];
+
+                bis.read(fileBytes, 0, fileBytes.length);
+                fileInfo.setName(sourceFile.getName());
+                fileInfo.setDataBytes(fileBytes);
+            } catch(Exception e){
+                e.printStackTrace();
+            } finally{
+                try {
+                    if(bis != null){
+                        bis.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return fileInfo;
+        }
+        
+        public List<FileInfo> getFilesFromSender(String sender){
+            List<FileInfo> fileInfos = new ArrayList<>();
+            try{
+                List<String> list = MySqlDB.getFile(sender , account.getId());                
+                if(list!=null){
+                    for(int i=0; i<list.size(); i++){                        
+                        FileInfo file = new FileInfo();
+                        file.setName(list.get(i));
+                        file.setSender(sender);
+                        fileInfos.add(file);
+                    }
+                }
+                return fileInfos;
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+            return fileInfos;
+        }
+        
+        public void sendFile(String source){     
+        try{           
+            FileInfo fileInfo = getFileInfo(source);
+            writeObj(fileInfo);                 
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
     }

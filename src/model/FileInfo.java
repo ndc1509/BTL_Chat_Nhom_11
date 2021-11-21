@@ -21,9 +21,9 @@ public class FileInfo implements Serializable{
     private int piecesOfFile;
     private int lastByteLength;
     private byte[] dataBytes;
-    private String status;
+    private String sender;
 
-    public FileInfo(String destDIR, String srcDIR, String name, long size, int piecesOfFile, int lastByteLength, byte[] dataBytes, String status) {
+    public FileInfo(String destDIR, String srcDIR, String name, long size, int piecesOfFile, int lastByteLength, byte[] dataBytes, String sender) {
         this.destDIR = destDIR;
         this.srcDIR = srcDIR;
         this.name = name;
@@ -31,7 +31,7 @@ public class FileInfo implements Serializable{
         this.piecesOfFile = piecesOfFile;
         this.lastByteLength = lastByteLength;
         this.dataBytes = dataBytes;
-        this.status = status;
+        this.sender = sender;
     }
 
     public FileInfo() {
@@ -93,12 +93,12 @@ public class FileInfo implements Serializable{
         this.dataBytes = dataBytes;
     }
 
-    public String getStatus() {
-        return status;
+    public String getSender() {
+        return sender;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setSender(String sender) {
+        this.sender = sender;
     }
     
     

@@ -55,6 +55,7 @@ public class ChatView extends javax.swing.JFrame{
         txtMes = new javax.swing.JTextField();
         btStopChat = new javax.swing.JButton();
         selectFile = new javax.swing.JButton();
+        showFile = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -89,23 +90,30 @@ public class ChatView extends javax.swing.JFrame{
             }
         });
 
+        showFile.setText("File được chia sẻ");
+        showFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showFileActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtMes, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(29, 29, 29)
-                        .addComponent(selectFile)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 152, Short.MAX_VALUE)
-                        .addComponent(btStopChat)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(29, 29, 29)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane1)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(txtMes)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(selectFile)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(showFile)
+                            .addGap(71, 71, 71)
+                            .addComponent(btStopChat))))
+                .addContainerGap(38, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -117,7 +125,8 @@ public class ChatView extends javax.swing.JFrame{
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btStopChat)
-                    .addComponent(selectFile))
+                    .addComponent(selectFile)
+                    .addComponent(showFile))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -151,6 +160,11 @@ public class ChatView extends javax.swing.JFrame{
             clientController.sendFile(path, friendName);
     }//GEN-LAST:event_selectFileActionPerformed
 
+    private void showFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showFileActionPerformed
+        // TODO add your handling code here:
+        clientController.requestFileList(friendName);
+    }//GEN-LAST:event_showFileActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -171,6 +185,7 @@ public class ChatView extends javax.swing.JFrame{
     private javax.swing.JButton btStopChat;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton selectFile;
+    private javax.swing.JButton showFile;
     private javax.swing.JTextArea txtLog;
     private javax.swing.JTextField txtMes;
     // End of variables declaration//GEN-END:variables
