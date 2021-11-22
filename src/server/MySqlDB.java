@@ -9,6 +9,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import model.Account;
+import model.ChatLog;
 
 /**
  *
@@ -394,6 +395,30 @@ public class MySqlDB{
             list.add(rs.getString(1));
         }
         return list;
+    }
+    
+    // lay chat log 1-1 giua 2 client
+    public static ChatLog getChatLog(String user1, String user2) throws ClassNotFoundException, SQLException{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+        String query = "Select * from chatlog" +
+                        " where (sender = ? AND receiver= ?) OR (sender = ? AND receiver= ?)" +
+                        " Order by id_chat_log;";
+        PreparedStatement statement = con.prepareStatement(query);
+        statement.setString(1, user1);
+        statement.setString(2, user2);
+        statement.setString(3, user2);
+        statement.setString(4, user1);
+        
+        ChatLog chatlog = new ChatLog();
+        
+        ResultSet rs = statement.executeQuery();
+        while(rs.next()){            
+            chatlog.addMes(rs.getString(2) + " : " + rs.getString(4));
+        }
+        return chatlog;
     }
 }
 

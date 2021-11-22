@@ -6,7 +6,9 @@
 package client;
 
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import javax.swing.JFileChooser;
+import model.ChatLog;
 
 /**
  *
@@ -17,6 +19,7 @@ public class ChatView extends javax.swing.JFrame{
     private Client clientController;
     private String yourName;
     private String friendName;
+    private ChatLog chatlog = new ChatLog();
     
     public ChatView(Client clientController, String user1, String user2) {
         initComponents();
@@ -28,6 +31,14 @@ public class ChatView extends javax.swing.JFrame{
         this.setTitle(yourName + "=> " + friendName);
         this.clientController = clientController;
      
+    }
+    
+    public void loadChatLog(ChatLog chatlog){
+        this.chatlog = chatlog;
+        ArrayList<String> chat = this.chatlog.getChatlog();
+        for(String s : chat){
+            txtLog.append(s + "\n");
+        }
     }
 
     public void loadMes(){

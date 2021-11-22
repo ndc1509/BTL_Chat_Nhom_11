@@ -1,4 +1,5 @@
-CREATE DATABASE  IF NOT EXISTS `chat` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE  IF NOT EXISTS `chat` 
+/*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `chat`;
 -- MySQL dump 10.13  Distrib 8.0.26, for Win64 (x86_64)
 --
@@ -122,6 +123,15 @@ CREATE TABLE `friendship` (
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+DROP TABLE IF EXISTS `chatlog`;
+CREATE TABLE `chatlog` (
+  `id_chat_log` int NOT NULL AUTO_INCREMENT,
+  `sender` varchar(45) DEFAULT NULL,
+  `receiver` varchar(45) DEFAULT NULL,
+  `mess` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_chat_log`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+INSERT INTO `chatlog` VALUES (1, 'ad', 'cuong', 'Heloo cuong'), (2, 'cuong', 'ad', 'Heloo ad'), (3, 'ad', 'cuong', 'Di choi khong ?'), (4, 'ad', 'cuong', 'Dang ranh'), (5, 'cuong', 'ad', 't dang ban, mai nhe');
 --
 -- Dumping data for table `friendship`
 --

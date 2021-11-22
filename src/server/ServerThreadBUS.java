@@ -43,7 +43,7 @@ public class ServerThreadBUS {
         }
     }
     
-    //Gửi cho 1 client
+    //Gửi cho 1 client 1 mes
     public void unicast(String username, String message){
         for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
             if(serverThread.getAccountUsername().equals(username)){
@@ -52,6 +52,20 @@ public class ServerThreadBUS {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                break;
+            }
+        }
+    }
+    //Gửi cho 1 client 1 Obj
+    public void unicast(String username, Object obj){
+        for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
+            if(serverThread.getAccountUsername().equals(username)){
+                try {
+                    serverThread.writeObj(obj);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
             }
         }
     }

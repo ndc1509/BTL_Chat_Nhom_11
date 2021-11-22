@@ -7,8 +7,6 @@ package server;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -25,9 +23,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import model.Account;
+import model.ChatLog;
 import model.FileInfo;
 import static server.Server.log;
 
@@ -211,8 +208,19 @@ public class ServerThread implements Runnable{
                 // yeu cau tro chuyen 28,username
                 case (28): 
                     try{
-                        String friendName = params[1]; 
+                        String friendName = params[1].trim();
+                        String myName = params[2].trim();
+                        System.out.println(friendName + "/" + myName);
+                        write("27," + friendName);
+                        ChatLog chatlog = MySqlDB.getChatLog(myName, friendName);
+                        writeObj(chatlog);
+                        
                         Server.getServerThreadBUS().unicast(friendName, "28," + account.getUsername());
+                        Server.getServerThreadBUS().unicast(friendName, "27," + account.getUsername());
+                        Server.getServerThreadBUS().unicast(friendName, chatlog);
+                        for(String s : chatlog.getChatlog()){
+                            System.out.println(s);
+                        }
                         Arrays.fill(params, null);
                         break;
                     }catch (Exception e){

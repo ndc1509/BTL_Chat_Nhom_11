@@ -5,22 +5,16 @@
  */
 package client;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.security.MessageDigest;
@@ -30,8 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultListModel;
 import model.Account;
+import model.ChatLog;
 import model.FileInfo;
 
 /**
@@ -302,6 +296,20 @@ public class Client {
                         e.printStackTrace();
                     }
                     break; 
+                    
+                case(27):
+                    try {
+                       String friend = params[1];
+                       ChatLog chatLog = (ChatLog) ois.readObject();
+                       ChatView tmp = (ChatView) listChatView.get(friend);
+                       tmp.loadChatLog(chatLog);
+                       //System.out.println("da nhan mot log chat");
+                       Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;     
                 // Nhan yeu cau chat
                 case(28):
                     try {
@@ -431,7 +439,7 @@ public class Client {
     
     public void sendRequestChat(String friendName){
         try {
-            sendMsg("28," + friendName);
+            sendMsg("28," + friendName + ", " + this.account.getUsername());
             this.chatView = new ChatView(this, account.getUsername(), friendName);
             listChatView.put(friendName, chatView);
         } catch (IOException ex) {
