@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import model.Account;
 import model.ChatLog;
 import model.FileInfo;
+import model.Messager;
 
 /**
  *
@@ -36,7 +37,6 @@ public class Client {
     private Socket clientSocket;
     private LoginView loginView;
     private MainMenu mainMenu;
-    private ChatView chatView;
     private FileList fileListView;
     
     private RequestView requestView;
@@ -296,14 +296,15 @@ public class Client {
                         e.printStackTrace();
                     }
                     break; 
-                    
+                 // yeu cau load chat box
                 case(27):
                     try {
-                       String friend = params[1];
-                       ChatLog chatLog = (ChatLog) ois.readObject();
+                       String friend = params[1].trim();
                        ChatView tmp = (ChatView) listChatView.get(friend);
+                       System.out.println(listChatView.size());
+                       ChatLog chatLog = (ChatLog) ois.readObject();
                        tmp.loadChatLog(chatLog);
-                       //System.out.println("da nhan mot log chat");
+                       
                        Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
@@ -325,10 +326,10 @@ public class Client {
                 //nhan tin nhan 1-1
                 case(29):
                     try {
-                        String mes = params[1];
-                        String friendName = params[2];
-                        ChatView tmp = (ChatView) listChatView.get(friendName);
-                        tmp.addMess(mes);
+                        String sender = params[1];
+                        Messager mess = (Messager) ois.readObject();
+                        ChatView tmp = (ChatView) listChatView.get(sender);
+                        tmp.addMess(mess);
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
@@ -437,19 +438,22 @@ public class Client {
         }
     }
     
-    public void sendRequestChat(String friendName){
+    public void sendRequestChat(String receiver){
         try {
-            sendMsg("28," + friendName + ", " + this.account.getUsername());
-            this.chatView = new ChatView(this, account.getUsername(), friendName);
-            listChatView.put(friendName, chatView);
+            ChatView chatView = new ChatView(this, account.getUsername(), receiver);
+            listChatView.put(receiver, chatView);
+            sendMsg("28," + receiver + "," + this.account.getUsername());
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    public void sendToFriend(String mes, String friendName){
+    public void sendToFriend(String receiver, Messager mess){
         try {
-            sendMsg("29," + mes + "," + friendName);
+            sendMsg("29," + receiver);
+            oos = new ObjectOutputStream(clientSocket.getOutputStream());
+            oos.writeObject(mess);
+            oos.flush(); 
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }

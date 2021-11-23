@@ -6,9 +6,12 @@
 package client;
 
 import java.awt.event.KeyEvent;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import model.ChatLog;
+import model.Messager;
 
 /**
  *
@@ -17,18 +20,18 @@ import model.ChatLog;
 public class ChatView extends javax.swing.JFrame{
 
     private Client clientController;
-    private String yourName;
-    private String friendName;
+    private String sender;
+    private String receiver;
     private ChatLog chatlog = new ChatLog();
     
     public ChatView(Client clientController, String user1, String user2) {
         initComponents();
         this.setVisible(true);
         
-        yourName = user1;
-        friendName = user2;
+        sender = user1;
+        receiver = user2;
         
-        this.setTitle(yourName + "=> " + friendName);
+        this.setTitle(sender + " nhắn tin cho " + receiver);
         this.clientController = clientController;
      
     }
@@ -45,8 +48,8 @@ public class ChatView extends javax.swing.JFrame{
         
     }
     //them tin nhắn mới
-    public void addMess(String mes){
-        txtLog.append(friendName + ": " + mes + "\n");
+    public void addMess(Messager mess){
+        txtLog.append(receiver + ": " + mess.getContent() + "\n");
     }
     // lấy tin nhắn đẻ gửi
     public String getMes(){
@@ -54,7 +57,7 @@ public class ChatView extends javax.swing.JFrame{
     }
 
     public String getFriendName() {
-        return friendName;
+        return receiver;
     }
     
     @SuppressWarnings("unchecked")
@@ -150,17 +153,19 @@ public class ChatView extends javax.swing.JFrame{
 
     private void txtMesKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtMesKeyPressed
         if(evt.getKeyCode() == KeyEvent.VK_ENTER){
-            String mes = getMes();
-            if(!mes.isEmpty()){
-                txtLog.append(yourName + ": " + mes + "\n");
+            String content = getMes();
+            if(!content.isEmpty()){
+                txtLog.append(sender + ": " + content + "\n");
                 txtMes.setText("");
-                clientController.sendToFriend(mes, friendName);
+                LocalDateTime datetime = LocalDateTime.now();
+                Messager messager = new Messager(sender, receiver, content, datetime);
+                clientController.sendToFriend(receiver, messager);
             }
         }
     }//GEN-LAST:event_txtMesKeyPressed
 
     private void btStopChatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStopChatActionPerformed
-       clientController.closeChat(friendName);
+       clientController.closeChat(receiver);
        this.dispose();
     }//GEN-LAST:event_btStopChatActionPerformed
 
@@ -168,12 +173,12 @@ public class ChatView extends javax.swing.JFrame{
         // TODO add your handling code here:
         String path = getFile();
         if(path != null)
-            clientController.sendFile(path, friendName);
+            clientController.sendFile(path, receiver);
     }//GEN-LAST:event_selectFileActionPerformed
 
     private void showFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showFileActionPerformed
         // TODO add your handling code here:
-        clientController.requestFileList(friendName);
+        clientController.requestFileList(receiver);
     }//GEN-LAST:event_showFileActionPerformed
 
     /**
@@ -187,7 +192,7 @@ public class ChatView extends javax.swing.JFrame{
         int r = fileChooser.showSaveDialog(null);
         if(r == JFileChooser.APPROVE_OPTION){
             path = fileChooser.getSelectedFile().getAbsolutePath();
-            txtLog.append(yourName + ": Đã gửi file " +  fileChooser.getSelectedFile().getName() + '\n');
+            txtLog.append(sender + ": Đã gửi file " +  fileChooser.getSelectedFile().getName() + '\n');
         }
         return path;
     }

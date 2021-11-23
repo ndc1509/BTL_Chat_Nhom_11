@@ -129,9 +129,10 @@ CREATE TABLE `chatlog` (
   `sender` varchar(45) DEFAULT NULL,
   `receiver` varchar(45) DEFAULT NULL,
   `mess` varchar(255) DEFAULT NULL,
+  `date_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id_chat_log`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-INSERT INTO `chatlog` VALUES (1, 'ad', 'cuong', 'Heloo cuong'), (2, 'cuong', 'ad', 'Heloo ad'), (3, 'ad', 'cuong', 'Di choi khong ?'), (4, 'ad', 'cuong', 'Dang ranh'), (5, 'cuong', 'ad', 't dang ban, mai nhe');
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 --
 -- Dumping data for table `friendship`
 --

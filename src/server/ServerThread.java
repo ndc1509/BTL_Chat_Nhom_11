@@ -13,19 +13,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.Socket;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import model.Account;
 import model.ChatLog;
 import model.FileInfo;
+import model.Messager;
 import static server.Server.log;
 
 /**
@@ -208,16 +205,16 @@ public class ServerThread implements Runnable{
                 // yeu cau tro chuyen 28,username
                 case (28): 
                     try{
-                        String friendName = params[1].trim();
+                        String receiver = params[1].trim();
                         String myName = params[2].trim();
-                        System.out.println(friendName + "/" + myName);
-                        write("27," + friendName);
-                        ChatLog chatlog = MySqlDB.getChatLog(myName, friendName);
+                        System.out.println(receiver + "/" + myName);
+                        write("27," + receiver);
+                        ChatLog chatlog = MySqlDB.getChatLog(myName, receiver);
                         writeObj(chatlog);
                         
-                        Server.getServerThreadBUS().unicast(friendName, "28," + account.getUsername());
-                        Server.getServerThreadBUS().unicast(friendName, "27," + account.getUsername());
-                        Server.getServerThreadBUS().unicast(friendName, chatlog);
+                        Server.getServerThreadBUS().unicast(receiver, "28," + account.getUsername());
+                        Server.getServerThreadBUS().unicast(receiver, "27," + account.getUsername());
+                        Server.getServerThreadBUS().unicast(receiver, chatlog);
                         for(String s : chatlog.getChatlog()){
                             System.out.println(s);
                         }
@@ -230,9 +227,12 @@ public class ServerThread implements Runnable{
                 // send mes cho friend
                 case (29): 
                     try{
-                        String mes = params[1]; 
-                        String friendName = params[2];
-                        Server.getServerThreadBUS().unicast(friendName, "29,"+ mes + "," + account.getUsername());
+                        String receiver = params[1].trim();
+                        ois = new ObjectInputStream(clientSocket.getInputStream());
+                        Messager mess = (Messager) ois.readObject();
+                        Server.getServerThreadBUS().unicast(receiver, "29,"+ account.getUsername());
+                        Server.getServerThreadBUS().unicast(receiver, mess);
+                        MySqlDB.saveMes(mess);
                         Arrays.fill(params, null);
                         break;
                     }catch (Exception e){

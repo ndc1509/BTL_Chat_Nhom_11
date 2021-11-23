@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Account;
 import model.ChatLog;
+import model.Messager;
 
 /**
  *
@@ -419,6 +420,21 @@ public class MySqlDB{
             chatlog.addMes(rs.getString(2) + " : " + rs.getString(4));
         }
         return chatlog;
+    }
+    // lưu tin nhắn
+    public static void saveMes(Messager mess) throws ClassNotFoundException, SQLException{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+        String query = "INSERT INTO chatlog(sender, receiver, mess, date_time) values (?, ?, ?, ?);";
+         PreparedStatement statement = con.prepareStatement(query);
+        statement.setString(1, mess.getSender());
+        statement.setString(2, mess.getReceiver());
+        statement.setString(3, mess.getContent());
+        statement.setString(4, mess.getDateTimeToString());
+        statement.executeUpdate();
+        statement.close();
     }
 }
 
