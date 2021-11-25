@@ -19,6 +19,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.JOptionPane;
 import model.Account;
 import model.ChatLog;
 import model.FileInfo;
@@ -202,22 +203,38 @@ public class ServerThread implements Runnable{
                         e.printStackTrace();
                     }
                     break;
+                // nhan yeu cau tra loi dong y tro chuyen
+                 case (27):
+                    try {
+                        int accept = Integer.parseInt(params[1]);   
+                        String receiver = params[2];
+                        String sender = params[3];
+                        
+                        if(accept == JOptionPane.YES_OPTION){
+                            ChatLog chatlog = MySqlDB.getChatLog(sender, receiver);
+                            
+                            write("27," + receiver + ",true");
+                            writeObj(chatlog);
+                           
+                            Server.getServerThreadBUS().unicast(receiver, "27," + account.getUsername()+ ",true");
+                            Server.getServerThreadBUS().unicast(receiver, chatlog);
+                            
+                        }else{
+                            write("27," + receiver + ",false");
+                        }
+                       
+                        Arrays.fill(params, null);
+                        break;
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;   
                 // yeu cau tro chuyen 28,username
                 case (28): 
                     try{
                         String receiver = params[1].trim();
-                        String myName = params[2].trim();
-                        System.out.println(receiver + "/" + myName);
-                        write("27," + receiver);
-                        ChatLog chatlog = MySqlDB.getChatLog(myName, receiver);
-                        writeObj(chatlog);
-                        
-                        Server.getServerThreadBUS().unicast(receiver, "28," + account.getUsername());
-                        Server.getServerThreadBUS().unicast(receiver, "27," + account.getUsername());
-                        Server.getServerThreadBUS().unicast(receiver, chatlog);
-                        for(String s : chatlog.getChatlog()){
-                            System.out.println(s);
-                        }
+                        String sender = params[2].trim();                
+                        Server.getServerThreadBUS().unicast(receiver, "28," + account.getUsername());             
                         Arrays.fill(params, null);
                         break;
                     }catch (Exception e){
@@ -228,11 +245,15 @@ public class ServerThread implements Runnable{
                 case (29): 
                     try{
                         String receiver = params[1].trim();
-                        ois = new ObjectInputStream(clientSocket.getInputStream());
-                        Messager mess = (Messager) ois.readObject();
-                        Server.getServerThreadBUS().unicast(receiver, "29,"+ account.getUsername());
-                        Server.getServerThreadBUS().unicast(receiver, mess);
-                        MySqlDB.saveMes(mess);
+                        if(params.length == 3){
+                             Server.getServerThreadBUS().unicast(receiver, "29,"+ account.getUsername()+ ",off");
+                        }else{
+                             ois = new ObjectInputStream(clientSocket.getInputStream());
+                            Messager mess = (Messager) ois.readObject();
+                            Server.getServerThreadBUS().unicast(receiver, "29,"+ account.getUsername());
+                            Server.getServerThreadBUS().unicast(receiver, mess);
+                            MySqlDB.saveMes(mess);
+                        }
                         Arrays.fill(params, null);
                         break;
                     }catch (Exception e){

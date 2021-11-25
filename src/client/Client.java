@@ -296,15 +296,19 @@ public class Client {
                         e.printStackTrace();
                     }
                     break; 
-                 // yeu cau load chat box
+                 // yeu cau load chat log
                 case(27):
                     try {
                        String friend = params[1].trim();
-                       ChatView tmp = (ChatView) listChatView.get(friend);
-                       System.out.println(listChatView.size());
-                       ChatLog chatLog = (ChatLog) ois.readObject();
-                       tmp.loadChatLog(chatLog);
-                       
+                       String accept = params[2].trim();
+                       if(accept.equals("true")){
+                            ChatLog chatLog = (ChatLog) ois.readObject();
+                            ChatView newChatView = new ChatView(this, account.getUsername(), friend);
+                            listChatView.put(friend, newChatView);
+                            newChatView.loadChatLog(chatLog);
+                       }else{
+                           mainMenu.showNotAcceptChat();
+                       }
                        Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
@@ -315,8 +319,8 @@ public class Client {
                 case(28):
                     try {
                        String friend = params[1];
-                       ChatView newChatView = new ChatView(this, account.getUsername(), friend);
-                       listChatView.put(friend, newChatView);
+                       int accept = mainMenu.acceptChat(friend);
+                       sendMsg("27," + accept + "," +friend+ ","+ account.getUsername());
                        Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
@@ -327,9 +331,18 @@ public class Client {
                 case(29):
                     try {
                         String sender = params[1];
-                        Messager mess = (Messager) ois.readObject();
-                        ChatView tmp = (ChatView) listChatView.get(sender);
-                        tmp.addMess(mess);
+                        if(params.length == 3){
+                            
+                            ChatView tmp = (ChatView) listChatView.get(sender);
+                            tmp.showOff();
+                            tmp.dispose();
+                            listChatView.remove(sender);
+                        }else{
+                            Messager mess = (Messager) ois.readObject();
+                            ChatView tmp = (ChatView) listChatView.get(sender);
+                            tmp.addMess(mess);
+                        }
+                       
                         Arrays.fill(params, null);
                         break;
                     } catch (Exception e) {
@@ -440,8 +453,6 @@ public class Client {
     
     public void sendRequestChat(String receiver){
         try {
-            ChatView chatView = new ChatView(this, account.getUsername(), receiver);
-            listChatView.put(receiver, chatView);
             sendMsg("28," + receiver + "," + this.account.getUsername());
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -459,8 +470,9 @@ public class Client {
         }
     }
     
-    public void closeChat(String friend){
+    public void closeChat(String friend) throws IOException{
         listChatView.remove(friend);
+        sendMsg("29," + friend + ",dong");
     }
 
     public void viewRequest() {
@@ -478,7 +490,7 @@ public class Client {
         List<String> frOffline = new ArrayList<>();
         if(globalList.isEmpty()){
             frOffline = frList;
-            mainMenu.setFrOfflineList(frOffline);
+          //mainMenu.setFrOfflineList(frOffline);
             return;
         }
         else {
@@ -489,7 +501,7 @@ public class Client {
                     frOffline.add(frList.get(k));
             }
                 
-            mainMenu.setFrOfflineList(frOffline);
+            //mainMenu.setFrOfflineList(frOffline);
             mainMenu.setFrOnlineList(frOnline);
         }
     }

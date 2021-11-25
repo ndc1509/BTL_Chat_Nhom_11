@@ -6,10 +6,14 @@
 package client;
 
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import model.ChatLog;
 import model.Messager;
 
@@ -44,9 +48,6 @@ public class ChatView extends javax.swing.JFrame{
         }
     }
 
-    public void loadMes(){
-        
-    }
     //them tin nhắn mới
     public void addMess(Messager mess){
         txtLog.append(receiver + ": " + mess.getContent() + "\n");
@@ -59,7 +60,9 @@ public class ChatView extends javax.swing.JFrame{
     public String getFriendName() {
         return receiver;
     }
-    
+    public void showOff(){
+        JOptionPane.showMessageDialog(null, "Bạn của bạn đã kết thúc cuộc trò chuyện");
+    }
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -165,7 +168,11 @@ public class ChatView extends javax.swing.JFrame{
     }//GEN-LAST:event_txtMesKeyPressed
 
     private void btStopChatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStopChatActionPerformed
-       clientController.closeChat(receiver);
+        try {
+            clientController.closeChat(receiver);
+        } catch (IOException ex) {
+            Logger.getLogger(ChatView.class.getName()).log(Level.SEVERE, null, ex);
+        }
        this.dispose();
     }//GEN-LAST:event_btStopChatActionPerformed
 
