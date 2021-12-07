@@ -38,6 +38,7 @@ public class Client {
     private LoginView loginView;
     private MainMenu mainMenu;
     private FileList fileListView;
+    private ChatRoomGlobal chatGlobal;
     
     private RequestView requestView;
     private Account account;
@@ -377,6 +378,10 @@ public class Client {
                         e.printStackTrace();
                     }
                     break;     
+                //nhan tin nhan global
+                case(33):
+                    chatGlobal.addMess(params[1].trim() + " : " + params[2].trim());
+                    break; 
                     
                 default:
                     Arrays.fill(params, null);                       
@@ -435,6 +440,11 @@ public class Client {
         }
     }
     
+    public void createGlobalChat(){
+        chatGlobal = new ChatRoomGlobal(this, account.getUsername());
+        chatGlobal.setVisible(true);
+    }
+    
     public void sendDeclineResponse(String username){
         try {
             sendMsg("46," + username);
@@ -465,6 +475,14 @@ public class Client {
             oos = new ObjectOutputStream(clientSocket.getOutputStream());
             oos.writeObject(mess);
             oos.flush(); 
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void sendToGlobal(String mess){
+        try {
+            sendMsg("33," + account.getUsername()+"," + mess);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -624,4 +642,9 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    public Account getAccount() {
+        return account;
+    }
+
 }

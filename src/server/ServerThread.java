@@ -299,6 +299,19 @@ public class ServerThread implements Runnable{
                         e.printStackTrace();
                     }
                     break;
+                // send mes cho tat ca
+                case (33): 
+                    try{
+                        String sender = params[1].trim();
+                        String mess = params[2].trim();
+                        Server.getServerThreadBUS().broadcast("33,"+sender+","+mess);
+                        Arrays.fill(params, null);
+                        break;
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;    
+                    
                 default:
                     Arrays.fill(params, null);
                     break;
