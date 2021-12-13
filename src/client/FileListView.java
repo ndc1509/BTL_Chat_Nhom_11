@@ -13,35 +13,42 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import model.Account;
+import model.FileInfo;
 
 /**
  *
  * @author Cuong
  */
-public class FileList extends javax.swing.JFrame {
+public class FileListView extends javax.swing.JFrame {
 
+    private List<FileInfo> list;
     private String saveDIR = "C:\\Users\\Cuong\\Documents\\NetBeansProjects\\Clone chat\\Chat_v1.1\\src\\client\\FileStorage\\";
-    private Client clientController;
-
+    private Client controller;
+    private Account sender;
     /**
      * Creates new form FileList
      */
-    public FileList(Client clientController, String sender) {
+    public FileListView(Client controller, List<FileInfo> list, Account sender) {
         initComponents();
-        this.clientController = clientController;
+        this.setVisible(true);
+        this.controller = controller;
+        this.list = list;
+        this.sender = sender;
+        if(list != null)
+            setFiles(list);
+        setTitle("File được gửi bởi " + this.sender.getUsername());
     }
 
-    public void setFiles(List<String> list){
-        if(list != null){
-            jList1.removeAll();
-            DefaultListModel model = new DefaultListModel();
-        
-            for(int i=0; i<list.size(); i++){
-                model.addElement(list.get(i));
-            }
-            jList1.setModel(model);
+    public void setFiles(List<FileInfo> list){
+        jList1.removeAll();
+        DefaultListModel model = new DefaultListModel();       
+        for(FileInfo f:list){
+            model.addElement(f.getName());
         }
+        jList1.setModel(model);
     }
+    
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -58,6 +65,12 @@ public class FileList extends javax.swing.JFrame {
         openFolder = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setResizable(false);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         jList1.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
@@ -113,8 +126,13 @@ public class FileList extends javax.swing.JFrame {
     private void downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadActionPerformed
         // TODO add your handling code here:
         String filename = jList1.getSelectedValue();
-        if(filename != null)
-            clientController.download(filename);
+        if(filename != null){
+            for(FileInfo f:list){
+                if(f.getName().equals(filename)){
+                    controller.download(f);
+                }
+            }
+        }       
     }//GEN-LAST:event_downloadActionPerformed
 
     private void openFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFolderActionPerformed
@@ -122,9 +140,15 @@ public class FileList extends javax.swing.JFrame {
             // TODO add your handling code here:
             Desktop.getDesktop().open(new File(saveDIR));
         } catch (IOException ex) {
-            Logger.getLogger(FileList.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FileListView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_openFolderActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        // TODO add your handling code here:
+        controller.closeFileList(sender);
+        dispose();
+    }//GEN-LAST:event_formWindowClosing
 
     /**
      * @param args the command line arguments

@@ -9,8 +9,11 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import model.Account;
+import model.AddFriendRequest;
 import model.ChatLog;
-import model.Messager;
+import model.FileInfo;
+import model.Message;
+import model.Room;
 
 /**
  *
@@ -20,7 +23,7 @@ public class MySqlDB{
     static final String dbUrl = "jdbc:mysql://localhost:3306/chat";
     static final String dbUsername = "root";
     static final String jdbcDriver = "com.mysql.cj.jdbc.Driver";
-    static final String dbPassword = "dinhsithuy";
+    static final String dbPassword = "";
     private Connection con = null;
     
     public MySqlDB(){
@@ -28,24 +31,24 @@ public class MySqlDB{
     }
     
     //Thiet lap trang thai sau khi dang nhap    
-    public static void setOnline(String username, Boolean isOnline) throws SQLException, ClassNotFoundException{
+    public static void setOnline(Account acc) throws SQLException, ClassNotFoundException{
         Connection con = null;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
         String query = "UPDATE account SET isOnline = 0 WHERE username = ?";
-        if(isOnline)
+        if(acc.isOnline() == 1)
             query = "UPDATE account SET isOnline = 1 WHERE username = ?";
         
         PreparedStatement ps = con.prepareStatement(query);    
-        ps.setString(1, username);
+        ps.setString(1, acc.getUsername());
         ps.executeUpdate();
         
         ps.close();
         con.close();
     }
     //Lay password de check
-    public static String getPassword(String username) throws SQLException, ClassNotFoundException{
+    public static String getPassword(Account acc) throws SQLException, ClassNotFoundException{
         Connection con = null;
         String pass="";
         Class.forName(jdbcDriver);
@@ -54,9 +57,9 @@ public class MySqlDB{
         String query = "SELECT password FROM account where username = ?;";
         
         PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, username);
+        ps.setString(1, acc.getUsername());
         ResultSet resultSet = ps.executeQuery();
-        Account acc = null;
+        
         while(resultSet.next()){
             pass = resultSet.getString(1);            
         }
@@ -67,7 +70,7 @@ public class MySqlDB{
         return pass;
     }
     //Lay account
-    public static Account getAccount(String username) throws SQLException, ClassNotFoundException{
+    public static Account getAccount(Account a) throws SQLException, ClassNotFoundException{
         Connection con = null;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
@@ -75,7 +78,7 @@ public class MySqlDB{
         String query = "SELECT * FROM account where username = ?;";
         
         PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, username);
+        ps.setString(1, a.getUsername());
         ResultSet resultSet = ps.executeQuery();
         Account acc = null;
         while(resultSet.next()){
@@ -83,7 +86,9 @@ public class MySqlDB{
             String name = resultSet.getString(2);
             String password = resultSet.getString(3);
             int isOnline = resultSet.getInt(4);
-            acc = new Account(id, name, password, isOnline);
+            acc = new Account();
+            acc.setId(id);
+            acc.setUsername(name);
         }
         resultSet.close();
         ps.close();
@@ -92,7 +97,7 @@ public class MySqlDB{
         return acc;
     }
     //Dang ki
-    public static Boolean addAccount(String username, String password) throws SQLException, ClassNotFoundException{
+    public static Boolean addAccount(Account acc) throws SQLException, ClassNotFoundException{
         Connection con = null;
         
         try {
@@ -102,10 +107,9 @@ public class MySqlDB{
             String query = "INSERT INTO account (username, password, isOnline) VALUES (?, ?, 0)";
 
             PreparedStatement ps = con.prepareStatement(query);
-            ps.setString(1, username);
-            ps.setString(2, password);
+            ps.setString(1, acc.getUsername());
+            ps.setString(2, acc.getPassword());
             int res = ps.executeUpdate();
-
             ps.close();
             con.close();
 
@@ -124,81 +128,70 @@ public class MySqlDB{
             }
         }
     }
-//    //K hieu
-//    public static String[] getAccount(String username) throws SQLException, ClassNotFoundException{
-//        Connection con = null;
-//        Class.forName(jdbcDriver);
-//        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-//        
-//        String query = "SELECT username FROM account , friendship"
-//                + "WHERE username != 'admin' "
-//                + "AND username != ? "
-//                + "AND isOnline = 1 "
-//                + "AND username = user1 "
-//                + "AND user2 = ?";
-//        PreparedStatement ps = con.prepareStatement(query);
-//        ps.setString(1, username);
-//        ps.setString(2, username);  
-//        
-//        ResultSet result =  ps.executeQuery();
-//        
-//        int count = 0;
-//        result.last();
-//        count = result.getRow();
-//        result.beforeFirst();
-//
-//        String[] usersArr = new String[count];
-//        int i = 0;
-//        while(result.next()) {			
-//            usersArr[i] = result.getString(1);
-//            i++;
-//        }
-//
-//        ps.close();
-//        con.close();
-//
-//        return usersArr;
-//    }
-    //Lay danh sach ban be
-    public static List<String> getFriends(int id) throws SQLException, ClassNotFoundException{
+
+    //Lay danh sach online Global
+    public static List<Account> getOnlineGlobal(Account account) throws ClassNotFoundException, SQLException{
         Connection con = null;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        String query = "select username from account where id in (select user2 from friendship where user1 = ?)";
+        List<Account> list = new ArrayList<>();
+        String query = "Select id,username from account "
+                + "where id != ? "
+                + "and isOnline = 1";
         PreparedStatement statement = con.prepareStatement(query);
-        statement.setInt(1, id);
+        statement.setInt(1, account.getId());
+        
+        ResultSet rs = statement.executeQuery();
+        while(rs.next()){   
+            Account acc = new Account();
+            acc.setId(rs.getInt("id"));
+            acc.setUsername(rs.getString("username"));
+            list.add(acc);
+        }
+        return list;
+    }
+    
+    
+    //Lay danh sach ban be
+    public static List<Account> getFriends(Account account) throws SQLException, ClassNotFoundException{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+        String query = "select id,username from account where id in (select user2 from friendship where user1 = ?)";
+        PreparedStatement statement = con.prepareStatement(query);
+        statement.setInt(1, account.getId());
         
         ResultSet result =  statement.executeQuery();
 
-        List<String> usersArr = new ArrayList<>();
+        List<Account> frArr = new ArrayList<>();
  
-        while(result.next()) {                
-            usersArr.add(result.getString(1));
+        while(result.next()) {  
+            Account acc = new Account();
+            acc.setId(result.getInt("id"));
+            acc.setUsername(result.getString("username"));
+            frArr.add(acc);
         }
 
         statement.close();
         con.close();
-        return usersArr;
+        return frArr;
     }
     
     //Them ban 
-    public static Boolean addFriend(int id1, String user2) {
+    public static Boolean addFriend(AddFriendRequest request) {
         Connection con = null;
         try {   
             Class.forName(jdbcDriver);
-            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-            
-            Account friendAcc = getAccount(user2);
-            int id2 = friendAcc.getId();
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);  
             
             String query = "INSERT INTO frendship (user1, user2) VALUES (?,?), (?,?)";
             PreparedStatement statement = con.prepareStatement(query);
-            statement.setInt(1, id1);
-            statement.setInt(2, id2);
-            statement.setInt(3, id2);
-            statement.setInt(4, id1);
-
+            statement.setInt(1, request.getSender().getId());
+            statement.setInt(2, request.getReceiver().getId());
+            statement.setInt(3, request.getReceiver().getId());
+            statement.setInt(4, request.getSender().getId());
             statement.executeUpdate();
 
             statement.close();
@@ -217,21 +210,21 @@ public class MySqlDB{
         }		
     }
     
-    public static Boolean sendFriendRequest(int id1, String user2){
+    public static Boolean sendFriendRequest(AddFriendRequest request){
         Connection con = null;
         boolean ok = false;
         try {   
             Class.forName(jdbcDriver);
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
             
-            Account acc = getAccount(user2);
-            int id2 = acc.getId();
-            String query = "INSERT INTO friendrequest (fromuser, touser, status) VALUES (?,?,0)";
+            String query = "INSERT INTO friendrequest (fromuser, touser, status, message) VALUES (?,?,0,?)";
             PreparedStatement statement = con.prepareStatement(query);
-            statement.setInt(1, id1);
-            statement.setInt(2, id2);
-            int i = statement.executeUpdate();
-            if(i == 0)
+            statement.setInt(1, request.getSender().getId());
+            statement.setInt(2, request.getReceiver().getId());
+            if(request.getMessage() != null)
+                statement.setString(3, request.getMessage());
+            else statement.setString(3, null);
+            if(statement.executeUpdate() == 0)
                 ok = false;
             else ok = true;
         } catch(Exception e) {
@@ -247,126 +240,99 @@ public class MySqlDB{
         return ok;
     }
     
-     public static ArrayList<String> getFriendRequest(int id2) throws Exception{
+    public static List<AddFriendRequest> getFriendRequest(Account account) throws Exception{
         Connection con = null;
 
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
 
-        String query = "select username from account where id in (select fromuser from friendrequest where touser = ? and status = 0)";
+        String query = "select sender.id as senderid, sender.username as sendername, receiver.id as receiveid, receiver.username as receivername, message from friendrequest req " +
+                            "join account sender on sender.id = req.fromuser " +
+                            "join account receiver on receiver.id = req.touser where req.status = 0 and req.touser = ?";
         PreparedStatement statement = con.prepareStatement(query);
 
-        statement.setInt(1, id2);
+        statement.setInt(1, account.getId());
         ResultSet rs = statement.executeQuery();
-        ArrayList<String> arr = new ArrayList<>();
+        List<AddFriendRequest> list = new ArrayList<>();
         while(rs.next()){
-            arr.add(rs.getString(1));
-        }
-        return arr;
-
-    }
-    
-    public static Boolean acceptFriendRequest(String user1, int id2){
-        Connection con = null;
-        try {   
-            Class.forName(jdbcDriver);
-            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-            
-            Account acc = getAccount(user1);
-            int id1 = acc.getId();
-            String query = "Update friendrequest set status = 1 "
-                    + "where fromuser = ? and touser = ?";
-            PreparedStatement statement = con.prepareStatement(query);
-            statement.setInt(1, id1);
-            statement.setInt(2, id2);
-            statement.executeUpdate();
-            
-            String query2 = "Insert into friendship (user1, user2) values (?,?) , (?,?)";
-            statement = con.prepareStatement(query2);
-            statement.setInt(1, id1);
-            statement.setInt(2, id2);
-            statement.setInt(3, id2);
-            statement.setInt(4, id1);
-            statement.executeUpdate();
-            statement.close();
-            return true;
-        } catch(Exception e) {
-            e.printStackTrace();
-            return false;
-        } finally {
-            try {
-                if (con != null) con.close();
-            } catch(SQLException se) {
-                se.printStackTrace();
-            }
-        }		
-    }
-    
-    public static Boolean declineFriendRequest(String user1, int id2){
-        Connection con = null;
-        try {   
-            Class.forName(jdbcDriver);
-            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-        
-            Account acc = getAccount(user1);
-            int id1 = acc.getId();
-            
-            String query = "DELETE FROM friendrequest "
-                    + "where fromuser = ? and touser = ?";
-            PreparedStatement statement = con.prepareStatement(query);
-            statement.setInt(1, id1);
-            statement.setInt(2, id2);
-            statement.executeUpdate();
-            statement.close();
-            con.close();
-
-            return true;
-        } catch(Exception e) {
-            e.printStackTrace();
-            return false;
-        } finally {
-            try {
-                if (con != null) con.close();
-            } catch(SQLException se) {
-                se.printStackTrace();
-            }
-        }		
-    }
-    
-    //Lay danh sach online Global
-    public static ArrayList<String> getOnlineGlobal(String username) throws ClassNotFoundException, SQLException{
-        Connection con = null;
-        Class.forName(jdbcDriver);
-        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-        
-        ArrayList<String> list = new ArrayList<>();
-        String query = "Select username from account "
-                + "where username != ? "
-                + "and isOnline = 1";
-        PreparedStatement statement = con.prepareStatement(query);
-        statement.setString(1, username);
-        
-        ResultSet rs = statement.executeQuery();
-        while(rs.next()){            
-            list.add(rs.getString(1));
+            AddFriendRequest req = new AddFriendRequest();
+            req.setSender(new Account(rs.getInt("senderid"), rs.getString("sendername")));
+            req.setReceiver(new Account(rs.getInt("receiverid"), rs.getString("receivername")));
+            req.setStatus(0);
+            req.setMessage(rs.getString("message"));
+            list.add(req);
         }
         return list;
     }
     
-    //Them file moi
-    public static void addFile(String filename, int id1, String user2){
+    public static Boolean acceptFriendRequest(AddFriendRequest request){
         Connection con = null;
         try {   
             Class.forName(jdbcDriver);
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
             
-            Account acc = getAccount(user2);
-            int id2 = acc.getId();
+            String query = "Update friendrequest set status = 1 "
+                    + "where fromuser = ? and touser = ?";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setInt(1, request.getSender().getId());
+            statement.setInt(2, request.getReceiver().getId());
+            statement.executeUpdate();
+            
+            if(addFriend(request))
+                return true;
+            else 
+                return false;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }		
+    }
+    
+    public static Boolean declineFriendRequest(AddFriendRequest request){
+        Connection con = null;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+            
+            String query = "Update friendrequest set status = 2 "
+                    + "where fromuser = ? and touser = ?";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setInt(1, request.getSender().getId());
+            statement.setInt(2, request.getReceiver().getId());
+            statement.executeUpdate();
+            statement.close();
+            con.close();
+            return true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }		
+    }
+    
+    //Them file moi
+    public static void addFile(FileInfo file){
+        Connection con = null;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+            
             String query = "INSERT INTO filesharing (file_name, sender, receiver) VALUES (?,?,?)";
             PreparedStatement statement = con.prepareStatement(query);
-            statement.setString(1, filename);
-            statement.setInt(2, id1);
-            statement.setInt(3, id2);
+            statement.setString(1, file.getName());
+            statement.setInt(2, file.getSender().getId());
+            statement.setInt(3, file.getReceiver().getId());
             statement.executeUpdate();
         } catch(Exception e) {
             e.printStackTrace();
@@ -379,97 +345,289 @@ public class MySqlDB{
         }
     }
     //Lay file do user1 gui cho id2
-    public static List<String> getFile(String user1, int id2) throws Exception{
+    public static List<FileInfo> getFile(Account acc1, Account acc2) throws Exception{
         Connection con = null;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        int id1 = getAccount(user1).getId();
-        ArrayList<String> list = new ArrayList<>();
+        List<FileInfo> list = new ArrayList<>();
         String query = "Select file_name from filesharing where sender = ? and receiver = ?";
         PreparedStatement statement = con.prepareStatement(query);
-        statement.setInt(1, id1);
-        statement.setInt(2, id2);
+        statement.setInt(1, acc1.getId());
+        statement.setInt(2, acc2.getId());
         
         ResultSet rs = statement.executeQuery();
-        while(rs.next()){            
-            list.add(rs.getString(1));
+        while(rs.next()){     
+            FileInfo file = new FileInfo();
+            file.setName(rs.getString(1));
+            file.setSender(acc1);
+            file.setReceiver(acc2);
+            list.add(file);
         }
         return list;
     }
     
     // lay chat log 1-1 giua 2 client
-    public static ChatLog getChatLog(String user1, String user2) throws ClassNotFoundException, SQLException{
+    public static ChatLog getChatLog(Account acc1, Account acc2) throws ClassNotFoundException, SQLException{
         Connection con = null;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        String query = "Select * from chatlog" +
-                        " where (sender = ? AND receiver= ?) OR (sender = ? AND receiver= ?)" +
-                        " Order by id_chat_log;";
+        String query = "Select chatlog.id_chat_log ,sender.id as senderid, sender.username as sender,receiver.id as receiverid, receiver.username as receiver, chatlog.mess, chatlog.date_time from chatlog " +
+                        "join account sender on sender.id = chatlog.sender " +
+                        "join account receiver on receiver.id = chatlog.receiver " +
+                        "where (sender = ? AND receiver= ?) OR (sender = ? AND receiver= ?) " +
+                        "Order by chatlog.id_chat_log;";
         PreparedStatement statement = con.prepareStatement(query);
-        statement.setString(1, user1);
-        statement.setString(2, user2);
-        statement.setString(3, user2);
-        statement.setString(4, user1);
+        statement.setInt(1, acc1.getId());
+        statement.setInt(2, acc2.getId());
+        statement.setInt(3, acc2.getId());
+        statement.setInt(4, acc1.getId());
         
         ChatLog chatlog = new ChatLog();
         
         ResultSet rs = statement.executeQuery();
-        while(rs.next()){            
-            chatlog.addMes(rs.getString(2) + " : " + rs.getString(4));
+        while(rs.next()){       
+            Account sender = new Account(rs.getInt("senderid"), rs.getString("sender"));
+            Account receiver = new Account(rs.getInt("receiverid"), rs.getString("receiver"));
+            Message msg = new Message();
+            msg.setSender(sender);
+            msg.setReceiver(receiver);
+            msg.setContent(rs.getString("mess"));
+            chatlog.addMes(msg);
         }
         return chatlog;
     }
-    // lưu tin nhắn
-    public static void saveMes(Messager mess) throws ClassNotFoundException, SQLException{
+    
+    public static ChatLog getChatLog(Room r) throws ClassNotFoundException, SQLException{
         Connection con = null;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        String query = "INSERT INTO chatlog(sender, receiver, mess, date_time) values (?, ?, ?, ?);";
+        String query = "Select chatlog.id_chat_log ,sender.id as senderid, sender.username as sender, chatlog.mess, chatlog.date_time, chatlog.room from chatlog " +
+                        "join account sender on sender.id = chatlog.sender " +
+                        "where chatlog.room = ? " +
+                        "Order by chatlog.id_chat_log;";
+        PreparedStatement statement = con.prepareStatement(query);
+        statement.setInt(1, r.getId());
+        
+        ChatLog chatlog = new ChatLog();
+        
+        ResultSet rs = statement.executeQuery();
+        while(rs.next()){       
+            Account sender = new Account(rs.getInt("senderid"), rs.getString("sender"));
+            Message msg = new Message();
+            msg.setSender(sender);
+            msg.setRoom(r);
+            msg.setContent(rs.getString("mess"));
+            chatlog.addMes(msg);
+        }
+        return chatlog;
+    }
+    
+    // lưu tin nhắn
+    public static void saveMes(Message mess) throws ClassNotFoundException, SQLException{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+        String query = "INSERT INTO chatlog(sender, receiver, mess, date_time, room) values (?, ?, ?, ?, ?);";
          PreparedStatement statement = con.prepareStatement(query);
-        statement.setString(1, mess.getSender());
-        statement.setString(2, mess.getReceiver());
+        statement.setInt(1, mess.getSender().getId());
+        if(mess.getReceiver()!= null)
+            statement.setInt(2, mess.getReceiver().getId());
+        else statement.setString(2, null);
         statement.setString(3, mess.getContent());
         statement.setString(4, mess.getDateTimeToString());
+        if(mess.getRoom() != null)
+            statement.setInt(5, mess.getRoom().getId());
+        else statement.setString(5, null);
         statement.executeUpdate();
         statement.close();
     }
+    
+    //Tao phong chat
+    public static Boolean createRoom(Room r){
+        Connection con = null;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+
+            String query = "INSERT INTO room (name, creator) values (?,?)";
+            PreparedStatement statement = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, r.getName());
+            statement.setInt(2, r.getCreator().getId());
+            statement.executeUpdate();
+            ResultSet rs = statement.getGeneratedKeys();
+            int room_id = 0;
+            while(rs.next()){              
+                room_id = rs.getInt(1);
+            }
+            statement.close();
+            
+            query = "INSERT INTO room_member (r_id, member) values (?,?)";
+            statement = con.prepareStatement(query);
+            statement.setInt(1, room_id);
+            statement.setInt(2, r.getCreator().getId());
+            statement.execute();
+            statement.close();
+            return true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }
+    }
+    //Them nguoi vao phong chat
+    public static Boolean insertMember(Room r, Account acc){
+        Connection con = null;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+
+            String query = "INSERT INTO room_member (r_id, member) values (?,?)";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setInt(1, r.getId());
+            statement.setInt(2, acc.getId());
+            statement.execute();
+            statement.close();
+            return true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }
+    }
+    
+    //Xóa người khỏi phòng chat
+    public static Boolean removeMember(Room r, Account acc){
+        Connection con = null;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+
+            String query = "DELETE FROM room_member WHERE r_id = ? and member = ?";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setInt(1, r.getId());
+            statement.setInt(2, acc.getId());
+            statement.execute();
+            statement.close();
+            return true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }
+    }
+    
+    public static List<Room> getRoomList(Account account){
+        Connection con = null;
+        try {   
+            List<Room> list = new ArrayList<>(); 
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+
+            String query = "select room_id, name from room_member "
+                    + "left join room on room_member.r_id = room.room_id  where `member` = ? "
+                    + "union "
+                    + "select room_id, name from room_member "
+                    + "right join room on room_member.r_id = room.room_id where `member` = ? ";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setInt(1, account.getId());
+            statement.setInt(2, account.getId());
+            ResultSet rs = statement.executeQuery();
+            while(rs.next()){   
+                Room room = new Room();
+                int room_id = rs.getInt("room_id");
+                String name = rs.getString("name");
+            
+                room.setId(room_id);
+                room.setName(name);
+                
+                String memberQuery = "select id, username from room_member "
+                    + "left join account on room_member.member = account.id  where r_id = ? and `member` != ? "
+                    + "union "
+                    + "select id, username from room_member "
+                    + "right join account on room_member.member = account.id where r_id = ? and `member` != ? ";
+                PreparedStatement ps2 = con.prepareStatement(memberQuery);
+                ps2.setInt(1, room_id);
+                ps2.setInt(2, account.getId());
+                ps2.setInt(3, room_id);
+                ps2.setInt(4, account.getId());
+                ResultSet rs2 = ps2.executeQuery();
+                List<Account> memList = new ArrayList<>();
+                while(rs2.next()){
+                    Account acc = new Account();
+                    acc.setId(rs2.getInt("id"));
+                    acc.setUsername(rs2.getString("username"));
+                    memList.add(acc);
+                }
+                ps2.close();
+                room.setMember(memList);
+                list.add(room);
+            }
+            return list;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }
+    }
+    
+    public static Room getRoomDetails(Room room){
+        Connection con = null;
+        try {   
+            Class.forName(jdbcDriver);
+            con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+    
+            String memberQuery = "select id, username from room_member "
+                + "left join account on room_member.member = account.id  where r_id = ? "
+                + "union "
+                + "select id, username from room_member "
+                + "right join account on room_member.member = account.id where r_id = ? ";
+            PreparedStatement ps = con.prepareStatement(memberQuery);
+            ps.setInt(1, room.getId());
+            ps.setInt(2, room.getId());
+            ResultSet rs = ps.executeQuery();
+            List<Account> memList = new ArrayList<>();
+            while(rs.next()){
+                Account acc = new Account();
+                acc.setId(rs.getInt("id"));
+                acc.setUsername(rs.getString("username"));
+                memList.add(acc);
+            }
+            ps.close();
+            room.setMember(memList);
+            return room;       
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch(SQLException se) {
+                se.printStackTrace();
+            }
+        }
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

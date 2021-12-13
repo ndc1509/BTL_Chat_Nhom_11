@@ -7,8 +7,6 @@ package server;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,14 +14,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import javax.swing.JOptionPane;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.Account;
+import model.AddFriendRequest;
 import model.ChatLog;
+import model.DataPacket;
 import model.FileInfo;
-import model.Messager;
+import model.Message;
+import model.Room;
 import static server.Server.log;
 
 /**
@@ -31,24 +34,66 @@ import static server.Server.log;
  * @author Cuong
  */
 public class ServerThread implements Runnable{
+    
+        //Ma lenh client nhan
+        private static final int LOGIN_SUCCESS = 1;
+        private static final int LOGIN_FAIL = 2;
+        private static final int REGISTER_SUCCESS = 3;
+        private static final int REGISTER_FAIL = 4;   
+        private static final int LOGOUT_SUCCESS = 5;
+        private static final int SOMEONE_GO_OFFLINE = 6;
+        private static final int SOMEONE_GO_ONLINE = 7;
+        private static final int LIST_GLOBAL = 8;
+        private static final int LIST_FRIEND_REQUESTS = 9;
+        private static final int LIST_FRIEND = 10;
+        private static final int LIST_ROOM = 11;
+        private static final int LIST_FILE = 12;
+        private static final int FILE = 13;
+
+        private static final int MESSAGE = 14;
+        private static final int MESSAGE_GLOBAL = 15;
+        private static final int CHAT_REQUEST = 16;
+        private static final int CHAT_REQUEST_ACCEPTED = 17;
+        private static final int CHAT_REQUEST_DECLINED = 18;
+        private static final int CHAT_CLOSE = 19;
+        private static final int UPDATE_ROOM = 20;
+        private static final int CHAT_LOG = 21;
         
+        private static final int MESSAGE_ROOM = 22;
+        private static final int CHAT_LOG_ROOM = 23; 
+        //Ma lenh server nhan
+        private static final int LOGIN = 1;
+        private static final int REGISTER = 2;
+        private static final int LOGOUT = 3;
+        private static final int SEND_NEW_ADD_FR_REQUEST = 4;
+        private static final int SEND_FR_REQUEST_RESPONSE = 5;
+        private static final int SEND_CHAT_REQUEST = 6;
+        private static final int SEND_ACCEPT_CHAT_REQUEST = 7;
+        private static final int SEND_DECLINE_CHAT_REQUEST = 8;
+        private static final int SEND_CHAT_CLOSE = 9;
+        private static final int SEND_CHAT_MESSAGE = 10;
+        private static final int SEND_CHAT_MESSAGE_GLOBAL = 11;
+        private static final int SEND_FILE = 12;
+        private static final int REQUEST_FILE_LIST = 13;
+        private static final int REQUEST_FILE = 14;
+        private static final int REQUEST_CREATE_ROOM = 15;
+        private static final int SEND_UPDATE_ROOM = 16;
+        private static final int SEND_CHAT_MESSAGE_ROOM = 17;
+        private static final int REQUEST_ROOM_CHATLOG = 18;
         private Socket clientSocket;
         private int clientNumber;
-        private DataInputStream in;
-        private DataOutputStream out;
         private ObjectInputStream ois;
         private ObjectOutputStream oos;
         private boolean isClosed; 
         private Account account;
-        private FileInfo fileInfo;
         
         private String srcFilePath = "C:\\Users\\Cuong\\Documents\\NetBeansProjects\\Clone chat\\Chat_v1.1\\src\\server\\FileStorage\\";
         public int getClientNumber(){
             return clientNumber;
         }
         
-        public String getAccountUsername(){
-            return this.account.getUsername();
+        public int getAccountID(){
+            return this.account.getId();
         }
         
         public ServerThread(Socket clientSocket, int clientNumber){
@@ -60,27 +105,22 @@ public class ServerThread implements Runnable{
 
         @Override
         public void run() {
-            String clientResponse;
-            
+            DataPacket data;     
             try{
-                in = new DataInputStream(clientSocket.getInputStream());
-                out = new DataOutputStream(clientSocket.getOutputStream());
-                
-                write("Bạn là client #" + clientNumber);
-                
+                writeObj(new DataPacket((String)"Bạn là client #" + clientNumber));
                 while(!isClosed){
-                    clientResponse = in.readUTF();
-                    log("Client: " + clientResponse);
-                    opcode(clientResponse, out);
+                    ois = new ObjectInputStream(clientSocket.getInputStream());
+                    data = (DataPacket) ois.readObject();
+                    log("Client: " + data.getCode());
+                    opcode(data);
                 }
             } catch(Exception e){
                 log("Lỗi khi xử lý client #" + clientNumber);
                 e.printStackTrace();
             } finally{
-                try {
-                    setOffline(account.getUsername());
-                    Server.getServerThreadBUS().boardcast(clientNumber, "52" + "," + account.getUsername());
-                    clientSocket.close();
+                try {    
+                    isClosed = true;
+                    Server.getServerThreadBUS().remove(clientNumber);            
                 } catch (Exception e) {
                     log("Lỗi khi khởi động kết nối");
                 }
@@ -88,337 +128,380 @@ public class ServerThread implements Runnable{
             log("Kết nối với client #" + clientNumber +" đã kết thúc");         
         }
         
+        public void writeObj(DataPacket data) throws IOException{
+            oos = new ObjectOutputStream(clientSocket.getOutputStream());
+            log(data.getCode() + "");
+            oos.writeObject(data);
+            oos.flush();           
+        }
+        
         //Ma lenh thuc thi 
-        public void opcode(String clientResponse, DataOutputStream out) throws Exception{
-            Boolean authenticationFlag = false;
-            String[] params = clientResponse.split(",");
-            int code = Integer.parseInt(params[0]);
-            
+        public void opcode(DataPacket data) throws Exception{
+            int code = data.getCode(); 
             switch(code){
                 //login
-                case(0):
+                case(LOGIN):
                     try{
-                        String username = params[1];
-                        String password = params[2];
-                        
-                        if(authenticate(username, password)){
-                            setOnline(username);
-                            authenticationFlag = true;
-                            this.account = getAccount(username);
-                            write("0," + authenticationFlag.toString()); 
-                            oos = new ObjectOutputStream(clientSocket.getOutputStream());
-                            writeObj(account);
-                            if(getOnlineAccounts()!="")
-                                write("50" + getOnlineAccounts());
-                            Server.getServerThreadBUS().boardcast(clientNumber,"51" + "," + account.getUsername());
-                            if(!getFriendRequest().equals(""))
-                                write("40" + getFriendRequest());
-                            if(!getFriends().equals(""))
-                                write("53" + getFriends());
+                        Account acc = (Account) data.getObject();
+                        if(authenticate(acc)){
+                            setOnline(acc);
+                            acc = MySqlDB.getAccount(acc);
+                            this.account = acc;
+                            writeObj(new DataPacket(LOGIN_SUCCESS, account)); 
+                            
+                            Server.getServerThreadBUS().boardcast(account, new DataPacket(SOMEONE_GO_ONLINE, account)); 
+                            
+                            if(getOnlineAccounts()!=null)                               
+                                writeObj(new DataPacket(LIST_GLOBAL, getOnlineAccounts()));
+                            if(getFriendRequest()!=null)
+                                writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest()));
+                            if(getFriends(account) != null)
+                                writeObj(new DataPacket(LIST_FRIEND, getFriends(account)));
+                            if(getRoomList(account)!=null)
+                                writeObj(new DataPacket(LIST_ROOM, getRoomList(account)));                               
                         } else {
                             log("Sai username hoặc password");
-                            write("0," + authenticationFlag.toString());                                                   
+                            writeObj(new DataPacket(LOGIN_FAIL, null));                                                   
                         }
-                        Arrays.fill(params, null);
                         break;
                     } catch(Exception ex){
                         ex.printStackTrace();
                     }
                     break;
                 //Tao tai khoan moi
-                case (1):
+                case (REGISTER):
                     try{
-                        String username = params[1];
-                        String password = params[2];
-                        
-                        Boolean addFlag = false;
-
-                        if(addNewAccount(username, password))
-                            write("1,true");
-                        else
-                            write("1,false");
-                        Arrays.fill(params, null);
-                        break;
+                        Account acc = (Account) data.getObject();
+                        if(addNewAccount(acc))
+                            writeObj(new DataPacket(REGISTER_SUCCESS, null));  
+                        else                       
+                            writeObj(new DataPacket(REGISTER_FAIL, null));  
                     } catch (Exception e) {
                             e.printStackTrace();
                     }
                     break;
                 //Logout
-                case (2):
-                    try {
-                        
-                        String username = params[1];                            
-                        setOffline(username);                        
-                                             
-                        write("2");  
-                        
-                        log(username + " đã ngắt kết nối đến server");
-                        Server.getServerThreadBUS().boardcast(clientNumber, "52" + "," + username);
+                case (LOGOUT):
+                    try {                                                                                                                                      
+                        setOffline(account);
+                        Server.getServerThreadBUS().boardcast(account, new DataPacket(SOMEONE_GO_OFFLINE, account));
+                        writeObj(new DataPacket(LOGOUT_SUCCESS, null));   
+                        log(account.getUsername() + " đã ngắt kết nối đến server");                    
                         isClosed = true;
-                        Arrays.fill(params, null);
-                        break;
                     } catch (Exception e){
                         e.printStackTrace();
                     }
                     break;
                     
-                //Accept friend
-                case (45):
+                //Nhan phan hoi ket ban
+                case (SEND_FR_REQUEST_RESPONSE):
                     try {
-                        String username = params[1];                                                   
-                        acceptFriendRequest(username);
-                        write("40" + getFriendRequest());
-                        write("53" + getFriends());
-                        Server.getServerThreadBUS().unicast(username, "42," + account.getUsername());
-                        Arrays.fill(params, null);
-                        break;
-                    } catch (Exception e){
-                        e.printStackTrace();
-                    }
-                    break;
-                    
-                //Decline friend
-                case (46):
-                    try {
-                        String username = params[1];                                                   
-                        declineFriendRequest(username);
-                        write("40" + getFriendRequest());
-                        Arrays.fill(params, null);
-                        break;
-                    } catch (Exception e){
-                        e.printStackTrace();
-                    }
-                    break;
-                
-                    
-                //Get friend request
-                case (47):
-                    try {
-                        String username = params[1];                                                   
-                        if(sendFriendRequest(username)==true)
-                            Server.getServerThreadBUS().unicast(username, "41," + account.getUsername());
-                        Arrays.fill(params, null);
-                        break;
-                    } catch (Exception e){
-                        e.printStackTrace();
-                    }
-                    break;
-                // nhan yeu cau tra loi dong y tro chuyen
-                 case (27):
-                    try {
-                        int accept = Integer.parseInt(params[1]);   
-                        String receiver = params[2];
-                        String sender = params[3];
-                        
-                        if(accept == JOptionPane.YES_OPTION){
-                            ChatLog chatlog = MySqlDB.getChatLog(sender, receiver);
-                            
-                            write("27," + receiver + ",true");
-                            writeObj(chatlog);
-                           
-                            Server.getServerThreadBUS().unicast(receiver, "27," + account.getUsername()+ ",true");
-                            Server.getServerThreadBUS().unicast(receiver, chatlog);
-                            
-                        }else{
-                            write("27," + receiver + ",false");
+                        AddFriendRequest req = (AddFriendRequest) data.getObject();
+                        if(req.getStatus() == 1){
+                            acceptFriendRequest(req);
+                            writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest()));
+                            if(getFriends(account) != null)
+                                writeObj(new DataPacket(LIST_FRIEND, getFriends(account)));                        
+                            Server.getServerThreadBUS().unicast(req.getSender(), new DataPacket(LIST_FRIEND, getFriends(account)));
+                        } else {
+                            declineFriendRequest(req);
+                            writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest()));
                         }
-                       
-                        Arrays.fill(params, null);
-                        break;
+                        
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                //Gui loi moi ket ban
+                case (SEND_NEW_ADD_FR_REQUEST):
+                    try {
+                        AddFriendRequest req = (AddFriendRequest) data.getObject();
+                        if(sendFriendRequest(req))
+                            Server.getServerThreadBUS().unicast(req.getReceiver(), new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest()));
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                //Dong y tro chuyen
+                case (SEND_ACCEPT_CHAT_REQUEST):
+                    try {                    
+                        Account sender = (Account) data.getObject();
+                        Account receiver = account;
+                        ChatLog chatlog = MySqlDB.getChatLog(sender, receiver);
+
+                        List<Object> list = new ArrayList<>();
+                        if(chatlog == null)
+                            list.add("empty chatlog");
+                        else list.add("chatlog");
+                        list.add(chatlog);
+                        list.add(sender);
+                        writeObj(new DataPacket(CHAT_LOG, list));
+                        
+                        list.clear();
+                        list.add(chatlog);
+                        list.add(receiver);
+                        Server.getServerThreadBUS().unicast(sender, new DataPacket(CHAT_REQUEST_ACCEPTED, list));
                     } catch (Exception e){
                         e.printStackTrace();
                     }
                     break;   
-                // yeu cau tro chuyen 28,username
-                case (28): 
+                //Tu choi tro chuyen
+                case (SEND_DECLINE_CHAT_REQUEST):
+                    try {
+                        Account sender = (Account) data.getObject();
+                        Server.getServerThreadBUS().unicast(sender, new DataPacket(CHAT_REQUEST_DECLINED, account));
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                break;
+                //Gui yeu cau tro chuyen
+                case (SEND_CHAT_REQUEST): 
                     try{
-                        String receiver = params[1].trim();
-                        String sender = params[2].trim();                
-                        Server.getServerThreadBUS().unicast(receiver, "28," + account.getUsername());             
-                        Arrays.fill(params, null);
-                        break;
+                        Account receiver = (Account) data.getObject();
+                        Account sender = account;   
+                        Server.getServerThreadBUS().unicast(receiver, new DataPacket(CHAT_REQUEST, sender));  
                     }catch (Exception e){
                         e.printStackTrace();
                     }
                     break;
-                // send mes cho friend
-                case (29): 
+                //Gui 1 tin nhan cho ban be
+                case (SEND_CHAT_MESSAGE): 
                     try{
-                        String receiver = params[1].trim();
-                        if(params.length == 3){
-                             Server.getServerThreadBUS().unicast(receiver, "29,"+ account.getUsername()+ ",off");
-                        }else{
-                             ois = new ObjectInputStream(clientSocket.getInputStream());
-                            Messager mess = (Messager) ois.readObject();
-                            Server.getServerThreadBUS().unicast(receiver, "29,"+ account.getUsername());
-                            Server.getServerThreadBUS().unicast(receiver, mess);
-                            MySqlDB.saveMes(mess);
-                        }
-                        Arrays.fill(params, null);
-                        break;
+                        Message msg = (Message) data.getObject();
+                        Server.getServerThreadBUS().unicast(msg.getReceiver(), new DataPacket(MESSAGE, msg));
+                        MySqlDB.saveMes(msg);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                //Nhan yeu cau ket thuc chat
+                case (SEND_CHAT_CLOSE): 
+                    try{
+                        Account receiver = (Account) data.getObject();
+                        Account sender = account;
+                        Server.getServerThreadBUS().unicast(receiver, new DataPacket(CHAT_CLOSE, sender));      
                     }catch (Exception e){
                         e.printStackTrace();
                     }
                     break;
                 //Nhan file
-                case(30):
+                case(SEND_FILE):
                     try {
-                        String user = params[1];
-                        getFile();
-                        MySqlDB.addFile(fileInfo.getName(), account.getId(), user);
-                        fileInfo = null;
-                        Arrays.fill(params, null);
-                        break;
+                        FileInfo f = (FileInfo) data.getObject();
+                        if(f != null){
+                            createFile(f);
+                            Server.getServerThreadBUS().unicast(f.getReceiver(), new DataPacket(LIST_FILE, getFilesFromSender(f.getSender(), f.getReceiver())));
+                            log("Nhan file thanh cong");
+                        }        
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     break;
-                //Lay danh sach file duoc share
-                case (31):
+                //Nhan danh sach file duoc share
+                case (REQUEST_FILE_LIST):
                     try{
-                        String user = params[1];
-                        List<FileInfo> files = getFilesFromSender(user);
-                        write("31,"+ user + "," + files.size());
-                        for(int i=0; i<files.size(); i++)
-                            writeObj(files.get(i));
-                        Arrays.fill(params, null);
-                        break;
+                        Account sender = (Account) data.getObject();
+                        List<FileInfo> files = getFilesFromSender(sender, account);
+                        if(files != null){
+                            List<Object> list = new ArrayList<>();
+                            list.add(true);
+                            list.add(sender);
+                            list.add(files);
+                            writeObj(new DataPacket(LIST_FILE, list));
+                        } else {
+                            List<Object> list = new ArrayList<>();
+                            list.add(false);
+                            list.add(sender);
+                            writeObj(new DataPacket(LIST_FILE, list));
+                        } 
                     } catch(Exception e){
                         e.printStackTrace();
                     }
                     break;
                 //Yeu cau tai file
-                case (32):
+                case (REQUEST_FILE):
                     try {
-                        String filename = params[1];
-                        write("32");
-                        sendFile(srcFilePath + filename);
-                        Arrays.fill(params, null);
-                        break;
+                        FileInfo file = (FileInfo) data.getObject();
+                        FileInfo fileToSend = getFileInfo(srcFilePath + file.getName());
+                        fileToSend.setSender(file.getSender());                        
+                        writeObj(new DataPacket(FILE, fileToSend));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     break;
-                // send mes cho tat ca
-                case (33): 
+                //Gui tin nhan global
+                case (SEND_CHAT_MESSAGE_GLOBAL): 
                     try{
-                        String sender = params[1].trim();
-                        String mess = params[2].trim();
-                        Server.getServerThreadBUS().broadcast("33,"+sender+","+mess);
-                        Arrays.fill(params, null);
-                        break;
+                        Message msg = (Message) data.getObject();
+                        Server.getServerThreadBUS().boardcast(account, new DataPacket(MESSAGE_GLOBAL, msg));
                     }catch (Exception e){
                         e.printStackTrace();
                     }
                     break;    
-                    
+                //Yeu cau tao phong chat
+                case (REQUEST_CREATE_ROOM): 
+                    try{
+                        Room room = (Room) data.getObject();
+                        if(createRoom(room)){
+                            writeObj(new DataPacket(LIST_ROOM, getRoomList(account)));
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                //Them thanh vien vao phong
+                case (SEND_UPDATE_ROOM): 
+                    try{                    
+                        List<Object> list = data.getListObject();
+                        String type = (String) list.get(0);
+                        Account targetMember = (Account) list.get(1);
+                        Room room = (Room) list.get(2);
+                        if(type.equals("ADD")){
+                            if(MySqlDB.insertMember(room, targetMember)){
+                                Room newRoom = MySqlDB.getRoomDetails(room);
+                                sendMsgToRoom(room, serverLog(targetMember.getUsername() + " đã được thêm vào phòng bởi " + account.getUsername(), room));                                
+                                for(Account acc:newRoom.getMember()){
+                                    List<Object> newList = new ArrayList<>();
+                                    newList.add("MEMBER_ADDED");
+                                    newList.add(targetMember);
+                                    newList.add(newRoom);
+                                    newList.add(getRoomList(acc));
+                                    Server.getServerThreadBUS().unicast(acc, new DataPacket(UPDATE_ROOM, newList));
+                                }                   
+                            }
+                        } else{
+                            if(MySqlDB.removeMember(room, targetMember)){
+                                Room newRoom = MySqlDB.getRoomDetails(room);
+                                List<Object> newList = new ArrayList<>();
+                                
+                                if(type.equals("KICK"))
+                                    sendMsgToRoom(room, serverLog(targetMember.getUsername() + " đã bị đá khỏi phòng bởi " + account.getUsername(), room));
+                                else if(type.equals("LEAVE"))
+                                    sendMsgToRoom(room, serverLog(targetMember.getUsername() + " đã rời phòng ", room));    
+                                
+                                for(Account acc:newRoom.getMember()){    
+                                    newList.clear();
+                                    if(type.equals("KICK"))
+                                        newList.add("MEMBER_KICKED");
+                                    else if(type.equals("LEAVE"))
+                                        newList.add("MEMBER_LEFT");
+                                    newList.add(targetMember);
+                                    newList.add(newRoom);
+                                    newList.add(getRoomList(acc));
+                                    Server.getServerThreadBUS().unicast(acc, new DataPacket(UPDATE_ROOM, newList));
+                                    Message msg = new Message();
+                                    
+                                }  
+                                //Gui thông điệp cho người bị đá/ người rời khỏi phòng
+                                newList.clear();
+                                if(type.equals("KICK"))
+                                        newList.add("MEMBER_KICKED");
+                                else if(type.equals("LEAVE"))
+                                    newList.add("MEMBER_LEFT");
+                                newList.add(targetMember);
+                                    newList.add(newRoom);
+                                newList.add(getRoomList(targetMember));
+                                Server.getServerThreadBUS().unicast(targetMember, new DataPacket(UPDATE_ROOM, newList));
+                            }                       
+                        }                        
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                case (SEND_CHAT_MESSAGE_ROOM): 
+                    try{
+                        Message msg = (Message) data.getObject();
+                        sendMsgToRoom(msg.getRoom(), msg);                        
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                //Yeu cau chat log room
+                case (REQUEST_ROOM_CHATLOG):
+                    try{
+                        Room r = (Room) data.getObject();
+                        ChatLog log = MySqlDB.getChatLog(r);
+                        List<Object> list = new ArrayList<>();
+                        if(log != null){
+                            list.add("chatlog");
+                            list.add(log);
+                            list.add(r);
+                        } else list.add("empty chatlog");
+                        writeObj(new DataPacket(CHAT_LOG_ROOM, list));
+                    } catch(Exception e){
+                        e.printStackTrace();
+                    }
                 default:
-                    Arrays.fill(params, null);
                     break;
             }
         }
         
-        public static Boolean authenticate(String username, String password) throws Exception{
-            String pass = MySqlDB.getPassword(username);
-            if(password.equals(pass))
+        public static Boolean authenticate(Account acc) throws Exception{
+            String pass = MySqlDB.getPassword(acc);
+            if(acc.getPassword().equals(pass))
                 return true;
             return false;
         }
         
-        public static Account getAccount(String username) throws Exception{
-            Account acc = MySqlDB.getAccount(username);
-            return acc;
+        
+        public static void setOnline(Account acc) throws Exception{
+            acc.setOnline(1);
+            MySqlDB.setOnline(acc);
         }
         
-        public static void setOnline(String username) throws Exception{
-            MySqlDB.setOnline(username, true);
+        public static void setOffline(Account acc) throws Exception{
+            acc.setOnline(0);
+            MySqlDB.setOnline(acc);
         }
         
-        public static void setOffline(String username) throws Exception{
-            MySqlDB.setOnline(username, false);
+        public static Boolean addNewAccount(Account acc) throws Exception{
+            return MySqlDB.addAccount(acc);
         }
         
-        public static Boolean addNewAccount(String username, String password) throws Exception{
-            return MySqlDB.addAccount(username, password);
-        }
-        
-        public String getOnlineAccounts(){
-            String str = "";
-            try{
-                ArrayList<String> list = MySqlDB.getOnlineGlobal(account.getUsername());                
-                if(list!=null){
-                    for(int i=0; i<list.size(); i++){                        
-                        str += "," + list.get(i);
-                    }
-                }
-                return str;
-            } catch(Exception e){
-                e.printStackTrace();
+        public List<Account> getOnlineAccounts(){    
+            try {                
+                return MySqlDB.getOnlineGlobal(account);
+            } catch (Exception ex) {
+                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
             }
-            return str;             
         }
         
-        public String getFriends(){
-            String str = "";
-            try{
-                List<String> list = MySqlDB.getFriends(account.getId());                
-                if(list!=null){
-                    for(int i=0; i<list.size(); i++){                        
-                        str += "," + list.get(i);
-                    }
-                }
-                return str;
-            } catch(Exception e){
-                e.printStackTrace();
+        public List<Account> getFriends(Account acc){          
+            try {                      
+                return MySqlDB.getFriends(acc);
+            } catch (Exception ex) {
+                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
             }
-            return str;
         }
         
-        public void write(String message) throws IOException{
-            log("Server: " + message);
-            out.writeUTF(message);
-            out.flush();
-        }
         
-        public void writeObj(Object object) throws IOException{
-            log("Server gửi object");
-            
-            oos.writeObject(object);
-            oos.flush();
-        }
         //Ket ban 
-        public String getFriendRequest(){
-            String str = "";
-            try{
-                ArrayList<String> list = MySqlDB.getFriendRequest(account.getId());                
-                if(list!=null){
-                    for(int i=0; i<list.size(); i++){                        
-                        str += "," + list.get(i);
-                    }
-                }
-                return str;
-            } catch(Exception e){
-                e.printStackTrace();
+        public List<AddFriendRequest> getFriendRequest(){
+            try {
+                return MySqlDB.getFriendRequest(account);
+            } catch (Exception ex) {
+                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
-            return str;  
+            return null;
         }
         
-        public Boolean sendFriendRequest(String username){
-            return  MySqlDB.sendFriendRequest(account.getId(), username);
+        public Boolean sendFriendRequest(AddFriendRequest request){
+            return  MySqlDB.sendFriendRequest(request);
         }
         
-        public void acceptFriendRequest(String username){
-            MySqlDB.acceptFriendRequest(username, account.getId());
+        public void acceptFriendRequest(AddFriendRequest request){
+            MySqlDB.acceptFriendRequest(request);
         }
         
-        public void declineFriendRequest(String username){
-            MySqlDB.declineFriendRequest(username, account.getId());
+        public void declineFriendRequest(AddFriendRequest request){
+            MySqlDB.declineFriendRequest(request);
         }
         
         //Lam viec voi file
         private boolean createFile(FileInfo fileInfo){
             BufferedOutputStream bos = null;
-            
             try {
                 if(fileInfo != null){
                     log(fileInfo.getDestDIR() + fileInfo.getName());
@@ -426,6 +509,7 @@ public class ServerThread implements Runnable{
                     bos = new BufferedOutputStream(new FileOutputStream(fileReceive));                    
                     bos.write(fileInfo.getDataBytes());
                     bos.flush();
+                    MySqlDB.addFile(fileInfo);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -440,20 +524,7 @@ public class ServerThread implements Runnable{
                 }
             }
             return true;
-        }
-        
-        public void getFile(){            
-            try{
-                ois = new ObjectInputStream(clientSocket.getInputStream());
-                this.fileInfo = (FileInfo) ois.readObject();
-                if(fileInfo != null){
-                    createFile(fileInfo);
-                    log("Nhan file thanh cong");
-                }                
-            } catch(Exception e){
-                e.printStackTrace();
-            }
-        }
+        }  
         
         private FileInfo getFileInfo(String srcFilePath){
             FileInfo fileInfo = null;
@@ -463,7 +534,6 @@ public class ServerThread implements Runnable{
                 bis = new BufferedInputStream(new FileInputStream(sourceFile));
                 fileInfo = new FileInfo();
                 byte[] fileBytes = new byte[(int) sourceFile.length()];
-
                 bis.read(fileBytes, 0, fileBytes.length);
                 fileInfo.setName(sourceFile.getName());
                 fileInfo.setDataBytes(fileBytes);
@@ -481,31 +551,42 @@ public class ServerThread implements Runnable{
             return fileInfo;
         }
         
-        public List<FileInfo> getFilesFromSender(String sender){
-            List<FileInfo> fileInfos = new ArrayList<>();
-            try{
-                List<String> list = MySqlDB.getFile(sender , account.getId());                
-                if(list!=null){
-                    for(int i=0; i<list.size(); i++){                        
-                        FileInfo file = new FileInfo();
-                        file.setName(list.get(i));
-                        file.setSender(sender);
-                        fileInfos.add(file);
-                    }
-                }
-                return fileInfos;
-            } catch(Exception e){
-                e.printStackTrace();
+        public List<FileInfo> getFilesFromSender(Account sender, Account receiver){
+            try {                
+                return MySqlDB.getFile(sender , receiver);
+            } catch (Exception ex) {
+                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
-            return fileInfos;
+            return null;
+        }
+               
+        public List<Room> getRoomList(Account acc){
+            return MySqlDB.getRoomList(acc);
         }
         
-        public void sendFile(String source){     
-        try{           
-            FileInfo fileInfo = getFileInfo(source);
-            writeObj(fileInfo);                 
-        } catch(Exception e){
-            e.printStackTrace();
+        public Boolean createRoom(Room room){
+            return MySqlDB.createRoom(room);
         }
-    }
-    }
+        
+        public Message serverLog(String string, Room r){
+            LocalDateTime datetime = LocalDateTime.now();
+            Account server = new Account(0, "SERVER");
+            return new Message(server, r, string, datetime);
+        }
+        
+        public void sendMsgToRoom(Room room, Message msg){
+            try {
+                List<Account> members = room.getMember();
+                Account sender = msg.getSender();
+                for(Account acc:members){
+                    if(acc.getId() != sender.getId())
+                        Server.getServerThreadBUS().unicast(acc, new DataPacket(MESSAGE_ROOM, msg));
+                }
+                MySqlDB.saveMes(msg);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+}

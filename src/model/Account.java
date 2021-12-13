@@ -12,13 +12,21 @@ import java.io.Serializable;
  * @author Cuong
  */
 public class Account implements Serializable{
-    private static final long serialVersionUID = 100L;
+    private static final long serialVersionUID = 1L;
     
     private int id;
     private String username;
     private String password;
     private int online;
 
+    public Account() {  
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" + "id=" + id + ", username=" + username + ", password=" + password + ", online=" + online + '}';
+    }
+    
     public Account(int id, String username, String password, int online) {
         this.id = id;
         this.username = username;
@@ -30,6 +38,11 @@ public class Account implements Serializable{
         this.id = id;
         this.username = username;
         this.online = online;
+    }
+    
+    public Account(int id, String username){
+        this.id = id;
+        this.username= username;
     }
     
     public int getId() {

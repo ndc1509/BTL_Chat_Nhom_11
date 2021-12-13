@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @author Cuong
  */
 public class FileInfo implements Serializable{
-    private static final long serialVersionUID = 99L;
+    private static final long serialVersionUID = 5L;
     
     private String destDIR;
     private String srcDIR;
@@ -21,9 +21,15 @@ public class FileInfo implements Serializable{
     private int piecesOfFile;
     private int lastByteLength;
     private byte[] dataBytes;
-    private String sender;
+    private Account sender;
+    private Account receiver;
 
-    public FileInfo(String destDIR, String srcDIR, String name, long size, int piecesOfFile, int lastByteLength, byte[] dataBytes, String sender) {
+    public FileInfo() {
+    }
+
+    
+    
+    public FileInfo(String destDIR, String srcDIR, String name, long size, int piecesOfFile, int lastByteLength, byte[] dataBytes, Account sender, Account receiver) {
         this.destDIR = destDIR;
         this.srcDIR = srcDIR;
         this.name = name;
@@ -32,9 +38,7 @@ public class FileInfo implements Serializable{
         this.lastByteLength = lastByteLength;
         this.dataBytes = dataBytes;
         this.sender = sender;
-    }
-
-    public FileInfo() {
+        this.receiver = receiver;
     }
 
     public String getDestDIR() {
@@ -93,13 +97,21 @@ public class FileInfo implements Serializable{
         this.dataBytes = dataBytes;
     }
 
-    public String getSender() {
+    public Account getSender() {
         return sender;
     }
 
-    public void setSender(String sender) {
+    public void setSender(Account sender) {
         this.sender = sender;
     }
-    
+
+    public Account getReceiver() {
+        return receiver;
+    }
+
+    public void setReceiver(Account receiver) {
+        this.receiver = receiver;
+    }
+
     
 }

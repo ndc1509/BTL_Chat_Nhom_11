@@ -7,21 +7,26 @@ package model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author Admin
  */
 public class ChatLog implements Serializable{
-    private ArrayList<String> chatlog = new ArrayList<>();
+    private static final long serialVersionUID = 3L;
+    private List<Message> chatlog = new ArrayList<>();
     
-    public void addMes(String mes){
+    public void addMes(Message mes){
         this.chatlog.add(mes);
     }
 
-    public ArrayList<String> getChatlog() {
+    public List<Message> getChatlog() {
         return chatlog;
     }
-    
-    
+
+    public void setChatlog(List<Message> chatlog) {
+        this.chatlog = chatlog;
+    }
+
 }

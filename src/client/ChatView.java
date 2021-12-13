@@ -14,8 +14,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import model.Account;
 import model.ChatLog;
-import model.Messager;
+import model.Message;
 
 /**
  *
@@ -23,34 +24,32 @@ import model.Messager;
  */
 public class ChatView extends javax.swing.JFrame{
 
-    private Client clientController;
-    private String sender;
-    private String receiver;
+    private Client controller;
+    private Account sender;
+    private Account receiver;
     private ChatLog chatlog = new ChatLog();
     
-    public ChatView(Client clientController, String user1, String user2) {
+    public ChatView(Client controller, Account user1, Account user2) {
         initComponents();
         this.setVisible(true);
         
-        sender = user1;
-        receiver = user2;
+        this.sender = user1;
+        this.receiver = user2;  
         
-        this.setTitle(sender + " nhắn tin cho " + receiver);
-        this.clientController = clientController;
-     
+        this.setTitle(sender.getUsername() + " nhắn tin cho " + receiver.getUsername());
+        this.controller = controller;    
     }
     
     public void loadChatLog(ChatLog chatlog){
         this.chatlog = chatlog;
-        ArrayList<String> chat = this.chatlog.getChatlog();
-        for(String s : chat){
-            txtLog.append(s + "\n");
+        for(Message s : chatlog.getChatlog()){
+            txtLog.append(s.getSender().getUsername() + ": " + s.getContent() + "\n");
         }
     }
 
     //them tin nhắn mới
-    public void addMess(Messager mess){
-        txtLog.append(receiver + ": " + mess.getContent() + "\n");
+    public void addMess(Message mess){
+        txtLog.append(mess.getSender().getUsername() + ": " + mess.getContent() + "\n");
     }
     // lấy tin nhắn đẻ gửi
     public String getMes(){
@@ -58,7 +57,7 @@ public class ChatView extends javax.swing.JFrame{
     }
 
     public String getFriendName() {
-        return receiver;
+        return receiver.getUsername();
     }
     public void showOff(){
         JOptionPane.showMessageDialog(null, "Bạn của bạn đã kết thúc cuộc trò chuyện");
@@ -75,6 +74,7 @@ public class ChatView extends javax.swing.JFrame{
         showFile = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setResizable(false);
 
         txtLog.setEditable(false);
         txtLog.setColumns(20);
@@ -122,14 +122,13 @@ public class ChatView extends javax.swing.JFrame{
                 .addGap(29, 29, 29)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jScrollPane1)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(txtMes)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(selectFile)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(showFile)
-                            .addGap(71, 71, 71)
-                            .addComponent(btStopChat))))
+                    .addComponent(txtMes)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(selectFile)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(showFile)
+                        .addGap(71, 71, 71)
+                        .addComponent(btStopChat)))
                 .addContainerGap(38, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -158,18 +157,18 @@ public class ChatView extends javax.swing.JFrame{
         if(evt.getKeyCode() == KeyEvent.VK_ENTER){
             String content = getMes();
             if(!content.isEmpty()){
-                txtLog.append(sender + ": " + content + "\n");
+                txtLog.append(sender.getUsername() + ": " + content + "\n");
                 txtMes.setText("");
                 LocalDateTime datetime = LocalDateTime.now();
-                Messager messager = new Messager(sender, receiver, content, datetime);
-                clientController.sendToFriend(receiver, messager);
+                Message message = new Message(sender, receiver, content, datetime);
+                controller.sendToFriend(message);
             }
         }
     }//GEN-LAST:event_txtMesKeyPressed
 
     private void btStopChatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStopChatActionPerformed
         try {
-            clientController.closeChat(receiver);
+            controller.closeChat(receiver);
         } catch (IOException ex) {
             Logger.getLogger(ChatView.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -180,12 +179,12 @@ public class ChatView extends javax.swing.JFrame{
         // TODO add your handling code here:
         String path = getFile();
         if(path != null)
-            clientController.sendFile(path, receiver);
+            controller.sendFile(path, receiver);
     }//GEN-LAST:event_selectFileActionPerformed
 
     private void showFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showFileActionPerformed
         // TODO add your handling code here:
-        clientController.requestFileList(receiver);
+        controller.requestFileList(receiver);
     }//GEN-LAST:event_showFileActionPerformed
 
     /**
@@ -199,7 +198,10 @@ public class ChatView extends javax.swing.JFrame{
         int r = fileChooser.showSaveDialog(null);
         if(r == JFileChooser.APPROVE_OPTION){
             path = fileChooser.getSelectedFile().getAbsolutePath();
-            txtLog.append(sender + ": Đã gửi file " +  fileChooser.getSelectedFile().getName() + '\n');
+            txtLog.append(sender.getUsername() + ": Đã gửi file " +  fileChooser.getSelectedFile().getName() + '\n');
+            LocalDateTime datetime = LocalDateTime.now();
+            Message message = new Message(sender, receiver, "Đã gửi file " +  fileChooser.getSelectedFile().getName(), datetime);
+            controller.sendToFriend(message);
         }
         return path;
     }

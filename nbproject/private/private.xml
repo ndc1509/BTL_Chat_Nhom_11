@@ -11,9 +11,25 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
         <group>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/client/MainMenu.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/client/ChatView.java</file>
             <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/client/Client.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/model/Message.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/server/MySqlDB.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/server/ServerThreadBUS.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/server/ServerThread.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/client/ChatRoomGlobal.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/client/RequestView.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/client/FileListView.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/client/ChatRoomView.java</file>
+        </group>
+        <group>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/client/MainMenu.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/client/Client.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/server/Server.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/server/ServerThreadBUS.java</file>
+            <file>file:/C:/Users/Cuong/Documents/NetBeansProjects/Clone%20chat/Chat_v1.1/src/server/ServerThread.java</file>
         </group>
     </open-files>
 </project-private>

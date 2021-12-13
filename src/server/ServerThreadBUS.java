@@ -8,6 +8,8 @@ package server;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import model.Account;
+import model.DataPacket;
 
 /**
  *
@@ -28,40 +30,31 @@ public class ServerThreadBUS {
         listServerThreads.add(serverThread);
     }
     
+    public void remove(ServerThread serverThread){
+        listServerThreads.remove(serverThread);
+    }
+    
     public int getLength(){
         return listServerThreads.size();
     }
     
     //Gửi cho toàn bộ client
-    public void broadcast(String message){
+    public void broadcast(DataPacket data){
         for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
             try {
-                serverThread.write(message);
+                serverThread.writeObj(data);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
     
-    //Gửi cho 1 client 1 mes
-    public void unicast(String username, String message){
-        for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
-            if(serverThread.getAccountUsername().equals(username)){
-                try {
-                    serverThread.write(message);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                break;
-            }
-        }
-    }
     //Gửi cho 1 client 1 Obj
-    public void unicast(String username, Object obj){
+    public void unicast(Account acc, DataPacket data){
         for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
-            if(serverThread.getAccountUsername().equals(username)){
+            if(serverThread.getAccountID() == acc.getId()){
                 try {
-                    serverThread.writeObj(obj);
+                    serverThread.writeObj(data);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -71,12 +64,12 @@ public class ServerThreadBUS {
     }
     
     //Gửi cho 1 danh sách client (có thể dùng cho group chat)
-    public void multicast(List<Integer> ids, String message){
+    public void multicast(List<Account> list_acc, DataPacket data){
         for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
-            for(int i=0; i < ids.size(); i++){
-                if(serverThread.getClientNumber() == i){
+            for(Account acc: list_acc){
+                if(serverThread.getAccountID() == acc.getId()){
                     try {
-                        serverThread.write(message);
+                        serverThread.writeObj(data);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -85,21 +78,21 @@ public class ServerThreadBUS {
             
         }
     }
-    //gửi cho toàn bộ client trừ cái id, id có thể là id người gửi ??
-    public void boardcast(int id, String message){  //gửi cho toàn bộ client trừ cái id
+    
+    public void boardcast(Account acc, DataPacket data){  //gửi cho toàn bộ client trừ cái id
         for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
-            if (serverThread.getClientNumber() == id) {
+            if (serverThread.getAccountID()== acc.getId()) {
                 continue;
             } else {
                 try {
-                    serverThread.write(message);
+                    serverThread.writeObj(data);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
         }
     }
-
+    
     public void remove(int id){
         for(int i=0; i<Server.getServerThreadBUS().getLength(); i++){
             if(Server.getServerThreadBUS().getListServerThreads().get(i).getClientNumber() == id){

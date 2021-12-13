@@ -5,20 +5,11 @@
  */
 package client;
 
-import client.*;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
+import model.Account;
 import model.ChatLog;
-import model.ChatLog;
-import model.Messager;
-import model.Messager;
+import model.Message;
 
 /**
  *
@@ -26,25 +17,22 @@ import model.Messager;
  */
 public class ChatRoomGlobal extends javax.swing.JFrame{
 
-    private Client clientController;
-    private String sender;
-    private String receiver;
+    private Client controller;
+    private Account sender;
+    private Account receiver;
     private ChatLog chatlog = new ChatLog();
     
-    public ChatRoomGlobal(Client clientController, String user1) {
+    public ChatRoomGlobal(Client controller, Account acc) {
         initComponents();
-        this.setVisible(true);
-        
-        sender = user1;
-
-        this.setTitle(sender+" _ Global chat");
-        this.clientController = clientController;
-     
+        this.setVisible(true);        
+        sender = acc;
+        this.setTitle(sender.getUsername()+" _ Global chat");
+        this.controller = controller;
     }
 
     //them tin nhắn mới
-    public void addMess(String mess){
-        txtLog.append(mess + "\n");
+    public void addMess(Message mess){
+        txtLog.append(mess.getSender().getUsername() + ": " + mess.getContent() + "\n");
     }
     // lấy tin nhắn đẻ gửi
     public String getMes(){
@@ -62,6 +50,12 @@ public class ChatRoomGlobal extends javax.swing.JFrame{
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setResizable(false);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         txtLog.setEditable(false);
         txtLog.setColumns(20);
@@ -123,31 +117,24 @@ public class ChatRoomGlobal extends javax.swing.JFrame{
         if(evt.getKeyCode() == KeyEvent.VK_ENTER){
             String content = getMes();
             if(!content.isEmpty()){
-//                txtLog.append(sender + ": " + content + "\n");
+                txtLog.append(sender.getUsername() + ": " + content + "\n");
                 txtMes.setText("");
-                String messager = content;
-//                LocalDateTime datetime = LocalDateTime.now();
-//                Messager messager = new Messager(sender, receiver, content, datetime);
-                clientController.sendToGlobal(messager);
+                LocalDateTime datetime = LocalDateTime.now();
+                Message message = new Message(sender, content, datetime);
+                controller.sendToGlobal(message);
             }
         }
     }//GEN-LAST:event_txtMesKeyPressed
 
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        // TODO add your handling code here:
+        controller.closeChatGlobal();
+        dispose();
+    }//GEN-LAST:event_formWindowClosing
+
     /**
      * @param args the command line arguments
      */
-
-    public String getFile(){
-        String path = null;
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Chọn file");
-        int r = fileChooser.showSaveDialog(null);
-        if(r == JFileChooser.APPROVE_OPTION){
-            path = fileChooser.getSelectedFile().getAbsolutePath();
-            txtLog.append(sender + ": Đã gửi file " +  fileChooser.getSelectedFile().getName() + '\n');
-        }
-        return path;
-    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;

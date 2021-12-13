@@ -43,6 +43,7 @@ public class LoginView extends javax.swing.JFrame {
         btnNewAccount = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setResizable(false);
         setSize(new java.awt.Dimension(400, 500));
 
         btnLogin.setText("Đăng nhập");
