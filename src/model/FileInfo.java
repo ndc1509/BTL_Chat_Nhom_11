@@ -17,13 +17,14 @@ public class FileInfo implements Serializable{
     private String destDIR;
     private String srcDIR;
     private String name;
+    private String extension;
     private long size;
     private int piecesOfFile;
     private int lastByteLength;
     private byte[] dataBytes;
     private Account sender;
     private Account receiver;
-
+    private Room room;
     public FileInfo() {
     }
 
@@ -111,6 +112,22 @@ public class FileInfo implements Serializable{
 
     public void setReceiver(Account receiver) {
         this.receiver = receiver;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
+    public String getExtension() {
+        return extension;
+    }
+
+    public void setExtension(String extension) {
+        this.extension = extension;
     }
 
     

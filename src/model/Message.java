@@ -10,36 +10,45 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Message implements Serializable{
+    public enum Type{
+        FILE,
+        MESSAGE,
+        IMG,
+        EMOJI
+    }
     private static final long serialVersionUID = 6L;
     private Account sender;
     private Account receiver;
     private Room room;
     private String content;
     private LocalDateTime datetime;
-
+    private Type type;
     public Message() {
     }
 
     
     
-    public Message(Account sender, Account receiver, String content, LocalDateTime datetime) {
+    public Message(Account sender, Account receiver, String content, LocalDateTime datetime, Type type) {
         this.sender = sender;
         this.receiver = receiver;
         this.content = content;
         this.datetime = datetime;
+        this.type = type;
     }
 
-    public Message(Account sender, Room r, String content, LocalDateTime datetime) {
+    public Message(Account sender, Room r, String content, LocalDateTime datetime, Type type) {
         this.sender = sender;
         this.room = r;
         this.content = content;
         this.datetime = datetime;
+        this.type = type;
     }
     
-    public Message(Account sender, String content, LocalDateTime datetime) {
+    public Message(Account sender, String content, LocalDateTime datetime, Type type) {
         this.sender = sender;
         this.content = content;
         this.datetime = datetime;
+        this.type = type;
     }
 
     public void setSender(Account sender) {
@@ -81,8 +90,14 @@ public class Message implements Serializable{
     public void setRoom(Room room) {
         this.room = room;
     }
-    
-    
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
     
     public String getDateTimeToString(){
         DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

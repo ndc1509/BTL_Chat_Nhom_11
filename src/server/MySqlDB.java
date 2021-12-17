@@ -29,7 +29,7 @@ public class MySqlDB{
     public MySqlDB(){
         
     }
-    
+        
     //Thiet lap trang thai sau khi dang nhap    
     public static void setOnline(Account acc) throws SQLException, ClassNotFoundException{
         Connection con = null;
@@ -51,23 +51,27 @@ public class MySqlDB{
     public static String getPassword(Account acc) throws SQLException, ClassNotFoundException{
         Connection con = null;
         String pass="";
+        boolean isOnline = false;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        String query = "SELECT password FROM account where username = ?;";
+        String query = "SELECT password, isOnline FROM account where username = ?;";
         
         PreparedStatement ps = con.prepareStatement(query);
         ps.setString(1, acc.getUsername());
         ResultSet resultSet = ps.executeQuery();
         
         while(resultSet.next()){
-            pass = resultSet.getString(1);            
+            pass = resultSet.getString(1);   
+            if(resultSet.getInt(2) == 1)
+                isOnline = true;
         }
         resultSet.close();
         ps.close();
         con.close();
-        
-        return pass;
+        if(!isOnline)
+            return pass;
+        else return null;
     }
     //Lay account
     public static Account getAccount(Account a) throws SQLException, ClassNotFoundException{
@@ -328,11 +332,18 @@ public class MySqlDB{
             Class.forName(jdbcDriver);
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
             
-            String query = "INSERT INTO filesharing (file_name, sender, receiver) VALUES (?,?,?)";
+            String query = "INSERT INTO filesharing (file_name, sender, receiver, room) VALUES (?,?,?,?)";
             PreparedStatement statement = con.prepareStatement(query);
             statement.setString(1, file.getName());
             statement.setInt(2, file.getSender().getId());
-            statement.setInt(3, file.getReceiver().getId());
+            if(file.getReceiver() != null)
+                statement.setInt(3, file.getReceiver().getId());
+            else statement.setString(3, null);
+            
+            if(file.getRoom() != null)
+                statement.setInt(4, file.getRoom().getId());
+            else statement.setString(4, null);
+            
             statement.executeUpdate();
         } catch(Exception e) {
             e.printStackTrace();
@@ -367,13 +378,37 @@ public class MySqlDB{
         return list;
     }
     
+    public static List<FileInfo> getFile(Room room) throws Exception{
+        Connection con = null;
+        Class.forName(jdbcDriver);
+        con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        
+        List<FileInfo> list = new ArrayList<>();
+        String query = "Select filesharing.file_name, acc.id as senderid, acc.username as sendername from filesharing "
+                + "join account acc on acc.id = filesharing.sender "
+                + "where room = ?";
+        PreparedStatement statement = con.prepareStatement(query);
+        statement.setInt(1, room.getId());
+        
+        ResultSet rs = statement.executeQuery();
+        while(rs.next()){     
+            FileInfo file = new FileInfo();
+            file.setName(rs.getString(1));
+//            Account sender = new Account(rs.getInt(2), rs.getString(3));
+//            file.setSender(sender);
+            file.setRoom(room);
+            list.add(file);
+        }
+        return list;
+    }
+    
     // lay chat log 1-1 giua 2 client
     public static ChatLog getChatLog(Account acc1, Account acc2) throws ClassNotFoundException, SQLException{
         Connection con = null;
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        String query = "Select chatlog.id_chat_log ,sender.id as senderid, sender.username as sender,receiver.id as receiverid, receiver.username as receiver, chatlog.mess, chatlog.date_time from chatlog " +
+        String query = "Select chatlog.id_chat_log ,sender.id as senderid, sender.username as sender,receiver.id as receiverid, receiver.username as receiver, chatlog.mess, chatlog.date_time, chatlog.type from chatlog " +
                         "join account sender on sender.id = chatlog.sender " +
                         "join account receiver on receiver.id = chatlog.receiver " +
                         "where (sender = ? AND receiver= ?) OR (sender = ? AND receiver= ?) " +
@@ -394,6 +429,14 @@ public class MySqlDB{
             msg.setSender(sender);
             msg.setReceiver(receiver);
             msg.setContent(rs.getString("mess"));
+            if(rs.getString("type").equals("message"))
+                msg.setType(Message.Type.MESSAGE);
+            else if(rs.getString("type").equals("file"))
+                msg.setType(Message.Type.FILE);
+            else if(rs.getString("type").equals("emoji"))
+                msg.setType(Message.Type.EMOJI);
+            else if(rs.getString("type").equals("img"))
+                msg.setType(Message.Type.IMG);
             chatlog.addMes(msg);
         }
         return chatlog;
@@ -404,7 +447,7 @@ public class MySqlDB{
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        String query = "Select chatlog.id_chat_log ,sender.id as senderid, sender.username as sender, chatlog.mess, chatlog.date_time, chatlog.room from chatlog " +
+        String query = "Select chatlog.id_chat_log ,sender.id as senderid, sender.username as sender, chatlog.mess, chatlog.date_time, chatlog.room, chatlog.type from chatlog " +
                         "join account sender on sender.id = chatlog.sender " +
                         "where chatlog.room = ? " +
                         "Order by chatlog.id_chat_log;";
@@ -420,6 +463,14 @@ public class MySqlDB{
             msg.setSender(sender);
             msg.setRoom(r);
             msg.setContent(rs.getString("mess"));
+            if(rs.getString("type").equals("message"))
+                msg.setType(Message.Type.MESSAGE);
+            else if(rs.getString("type").equals("file"))
+                msg.setType(Message.Type.FILE);
+            else if(rs.getString("type").equals("emoji"))
+                msg.setType(Message.Type.EMOJI);
+            else if(rs.getString("type").equals("img"))
+                msg.setType(Message.Type.IMG);
             chatlog.addMes(msg);
         }
         return chatlog;
@@ -431,7 +482,7 @@ public class MySqlDB{
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
         
-        String query = "INSERT INTO chatlog(sender, receiver, mess, date_time, room) values (?, ?, ?, ?, ?);";
+        String query = "INSERT INTO chatlog(sender, receiver, mess, date_time, room, type) values (?, ?, ?, ?, ?, ?);";
          PreparedStatement statement = con.prepareStatement(query);
         statement.setInt(1, mess.getSender().getId());
         if(mess.getReceiver()!= null)
@@ -442,6 +493,15 @@ public class MySqlDB{
         if(mess.getRoom() != null)
             statement.setInt(5, mess.getRoom().getId());
         else statement.setString(5, null);
+        
+        if(mess.getType().equals(Message.Type.MESSAGE))
+            statement.setString(6, "message");
+        else if(mess.getType().equals(Message.Type.FILE))
+            statement.setString(6, "file");
+        else if(mess.getType().equals(Message.Type.EMOJI))
+            statement.setString(6, "emoji");
+        else if(mess.getType().equals(Message.Type.IMG))
+            statement.setString(6, "img");
         statement.executeUpdate();
         statement.close();
     }
