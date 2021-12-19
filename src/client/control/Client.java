@@ -345,8 +345,14 @@ public class Client {
                 try {
                     Message msg = (Message) data.getObject();
                     Account sender = msg.getSender();
-                    ChatView tmp = (ChatView) listChatView.get(sender.getId());
-                    tmp.addMess(msg);                    
+                    if(sender.getId() == account.getId()){
+                        Account receiver = msg.getReceiver();
+                        ChatView tmp = (ChatView) listChatView.get(receiver.getId());
+                        tmp.addMess(msg);  
+                    } else{
+                        ChatView tmp = (ChatView) listChatView.get(sender.getId());
+                        tmp.addMess(msg);  
+                    }              
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

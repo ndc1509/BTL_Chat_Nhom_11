@@ -44,16 +44,23 @@ public class ChatView extends javax.swing.JFrame{
     public void loadChatLog(ChatLog chatlog){
         this.chatlog = chatlog;
         for(Message s : chatlog.getChatlog()){
-            if(s.getType().equals(Message.Type.MESSAGE))
-                txtLog.append(s.getSender().getUsername() + ": " + s.getContent() + "\n");
-            else if(s.getType().equals(Message.Type.FILE))
-                txtLog.append(s.getSender().getUsername() + ": Đã gửi file " + s.getContent() + "\n");
+            addMess(s);
         }
     }
 
     //them tin nhắn mới
-    public void addMess(Message mess){
-        txtLog.append(mess.getSender().getUsername() + ": " + mess.getContent() + "\n");
+    public void addMess(Message s){
+        if(s.getSender().getId() == sender.getId()){
+            if(s.getType().equals(Message.Type.MESSAGE))
+                txtLog.append("Bạn: " + s.getContent() + "\n");
+            else if(s.getType().equals(Message.Type.FILE))
+                txtLog.append("Bạn: Đã gửi file " + s.getContent() + "\n");
+        } else{
+            if(s.getType().equals(Message.Type.MESSAGE))
+                txtLog.append(s.getSender().getUsername() + ": " + s.getContent() + "\n");
+        else if(s.getType().equals(Message.Type.FILE))
+                txtLog.append(s.getSender().getUsername() + ": Đã gửi file " + s.getContent() + "\n");
+        }
     }
     // lấy tin nhắn đẻ gửi
     public String getMes(){
@@ -161,7 +168,7 @@ public class ChatView extends javax.swing.JFrame{
         if(evt.getKeyCode() == KeyEvent.VK_ENTER){
             String content = getMes();
             if(!content.isEmpty()){
-                txtLog.append(sender.getUsername() + ": " + content + "\n");
+                //txtLog.append(sender.getUsername() + ": " + content + "\n");
                 txtMes.setText("");
                 LocalDateTime datetime = LocalDateTime.now();
                 Message message = new Message(sender, receiver, content, datetime, Message.Type.MESSAGE);
@@ -203,7 +210,9 @@ public class ChatView extends javax.swing.JFrame{
         int r = fileChooser.showSaveDialog(null);
         if(r == JFileChooser.APPROVE_OPTION){
             path = fileChooser.getSelectedFile().getAbsolutePath();
-            txtLog.append(sender.getUsername() + ": Đã gửi file " +  fileChooser.getSelectedFile().getName() + '\n');
+            if(path != null)
+                controller.fileHandler.sendFile(path, receiver);
+            //txtLog.append(sender.getUsername() + ": Đã gửi file " +  fileChooser.getSelectedFile().getName() + '\n');
             LocalDateTime datetime = LocalDateTime.now();
             Message message = new Message(sender, receiver, fileChooser.getSelectedFile().getName(), datetime, Message.Type.FILE);
             controller.sendToFriend(message);

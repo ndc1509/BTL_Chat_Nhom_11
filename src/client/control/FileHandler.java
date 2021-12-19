@@ -171,13 +171,10 @@ public class FileHandler {
     //Yeu cau danh sach file ban be gui
     public void requestFileList(Account sender){
         try {
-            FileListView view = (FileListView) listFileListView.get(sender.getId());
-            if(view == null){
                 List<Object> list = new ArrayList<>();
                 list.add("FRIEND");
                 list.add(sender);
                 controller.sendObj(new DataPacket(controller.REQUEST_FILE_LIST, list));
-            } else view.toFront();
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -185,13 +182,10 @@ public class FileHandler {
     //Danh sach file trong nhom
     public void requestFileList(Room r){
         try {
-            FileListView view = (FileListView) listFileListViewForRoom.get(r.getId());
-            if(view == null){
                 List<Object> list = new ArrayList<>();
                 list.add("ROOM");
                 list.add(r);
                 controller.sendObj(new DataPacket(controller.REQUEST_FILE_LIST, list));
-            } else view.toFront();
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }

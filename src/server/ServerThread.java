@@ -275,8 +275,10 @@ public class ServerThread implements Runnable{
                 case (SEND_CHAT_MESSAGE): 
                     try{
                         Message msg = (Message) data.getObject();
+                        
                         Server.getServerThreadBUS().unicast(msg.getReceiver(), new DataPacket(MESSAGE, msg));
                         MySqlDB.saveMes(msg);
+                        writeObj(new DataPacket(MESSAGE, msg));
                     }catch (Exception e){
                         e.printStackTrace();
                     }
