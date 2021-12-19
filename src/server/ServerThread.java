@@ -157,7 +157,7 @@ public class ServerThread implements Runnable{
                             
                             if(getOnlineAccounts()!=null)                               
                                 writeObj(new DataPacket(LIST_GLOBAL, getOnlineAccounts()));
-                            if(getFriendRequest()!=null)
+                            if(getFriendRequest(account)!=null)
                                 writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest(account)));
                             if(getFriends(account) != null)
                                 writeObj(new DataPacket(LIST_FRIEND, getFriends(account)));
