@@ -629,10 +629,10 @@ public class Client {
     public Boolean checkIsFriend(String username){
         for(Account fr: frList){
             if(fr.getUsername().equals(username)){
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
     
     public void showRequestView() {

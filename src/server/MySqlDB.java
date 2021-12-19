@@ -250,7 +250,7 @@ public class MySqlDB{
         Class.forName(jdbcDriver);
         con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
 
-        String query = "select sender.id as senderid, sender.username as sendername, receiver.id as receiveid, receiver.username as receivername, message from friendrequest req " +
+        String query = "select sender.id as senderid, sender.username as sendername, receiver.id as receiverid, receiver.username as receivername, message from friendrequest req " +
                             "join account sender on sender.id = req.fromuser " +
                             "join account receiver on receiver.id = req.touser where req.status = 0 and req.touser = ?";
         PreparedStatement statement = con.prepareStatement(query);
