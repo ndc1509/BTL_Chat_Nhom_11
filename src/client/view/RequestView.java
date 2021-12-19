@@ -27,7 +27,8 @@ public class RequestView extends javax.swing.JFrame {
         this.list = list;
         initComponents();
         setVisible(true);
-        setRequest(list);
+        if(list != null)
+            setRequest(list);
         setTitle(this.controller.getAccount().getUsername());
     }
     
@@ -118,6 +119,7 @@ public class RequestView extends javax.swing.JFrame {
             jList1.removeAll();
             DefaultListModel model = new DefaultListModel();
             for(int i=0; i<list.size(); i++){
+                System.out.println(list.get(i).getSender());
                 model.addElement(list.get(i).getSender().getUsername());
             }
             jList1.setModel(model);

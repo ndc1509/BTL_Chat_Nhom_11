@@ -158,7 +158,7 @@ public class ServerThread implements Runnable{
                             if(getOnlineAccounts()!=null)                               
                                 writeObj(new DataPacket(LIST_GLOBAL, getOnlineAccounts()));
                             if(getFriendRequest()!=null)
-                                writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest()));
+                                writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest(account)));
                             if(getFriends(account) != null)
                                 writeObj(new DataPacket(LIST_FRIEND, getFriends(account)));
                             if(getRoomList(account)!=null)
@@ -203,13 +203,13 @@ public class ServerThread implements Runnable{
                         AddFriendRequest req = (AddFriendRequest) data.getObject();
                         if(req.getStatus() == 1){
                             acceptFriendRequest(req);
-                            writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest()));
+                            writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest(account)));
                             if(getFriends(account) != null)
                                 writeObj(new DataPacket(LIST_FRIEND, getFriends(account)));                        
                             Server.getServerThreadBUS().unicast(req.getSender(), new DataPacket(LIST_FRIEND, getFriends(account)));
                         } else {
                             declineFriendRequest(req);
-                            writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest()));
+                            writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest(account)));
                         }
                         
                     } catch (Exception e){
@@ -221,7 +221,7 @@ public class ServerThread implements Runnable{
                     try {
                         AddFriendRequest req = (AddFriendRequest) data.getObject();
                         if(sendFriendRequest(req))
-                            Server.getServerThreadBUS().unicast(req.getReceiver(), new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest()));
+                            Server.getServerThreadBUS().unicast(req.getReceiver(), new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest(req.getReceiver())));
                     } catch (Exception e){
                         e.printStackTrace();
                     }
@@ -544,9 +544,9 @@ public class ServerThread implements Runnable{
         
         
         //Ket ban 
-        public List<AddFriendRequest> getFriendRequest(){
+        public List<AddFriendRequest> getFriendRequest(Account acc){
             try {
-                return MySqlDB.getFriendRequest(account);
+                return MySqlDB.getFriendRequest(acc);
             } catch (Exception ex) {
                 Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
