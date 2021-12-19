@@ -190,7 +190,7 @@ public class MySqlDB{
             Class.forName(jdbcDriver);
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);  
             
-            String query = "INSERT INTO frendship (user1, user2) VALUES (?,?), (?,?)";
+            String query = "INSERT INTO friendship (user1, user2) VALUES (?,?), (?,?)";
             PreparedStatement statement = con.prepareStatement(query);
             statement.setInt(1, request.getSender().getId());
             statement.setInt(2, request.getReceiver().getId());

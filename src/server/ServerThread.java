@@ -206,7 +206,7 @@ public class ServerThread implements Runnable{
                             writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest(account)));
                             if(getFriends(account) != null)
                                 writeObj(new DataPacket(LIST_FRIEND, getFriends(account)));                        
-                            Server.getServerThreadBUS().unicast(req.getSender(), new DataPacket(LIST_FRIEND, getFriends(account)));
+                            Server.getServerThreadBUS().unicast(req.getSender(), new DataPacket(LIST_FRIEND, getFriends(req.getSender())));
                         } else {
                             declineFriendRequest(req);
                             writeObj(new DataPacket(LIST_FRIEND_REQUESTS, getFriendRequest(account)));
