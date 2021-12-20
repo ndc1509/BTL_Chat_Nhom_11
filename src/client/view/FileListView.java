@@ -55,6 +55,7 @@ public class FileListView extends javax.swing.JFrame {
     }
     
     public void setFiles(List<FileInfo> list){
+        this.list = list;
         jList1.removeAll();
         DefaultListModel model = new DefaultListModel();       
         if(list != null){
@@ -141,6 +142,7 @@ public class FileListView extends javax.swing.JFrame {
             for(FileInfo f:list){
                 if(f.getName().equals(filename)){
                     controller.fileHandler.download(f);
+                    break;
                 }
             }
         }       

@@ -676,6 +676,7 @@ public class Client {
             for(Account fr:frList){
                 if(fr.getUsername().equals(receiver)){
                     sendObj(new DataPacket(SEND_CHAT_REQUEST, fr));
+                    break;
                 }
             }
         } catch (IOException ex) {
@@ -698,9 +699,9 @@ public class Client {
     
     //Xử lý danh sách bạn bè
     public void viewFriends(){   
-        for(Account acc:globalList){
-            System.out.println(acc);
-        }
+//        for(Account acc:globalList){
+//            System.out.println(acc);
+//        }
         if(globalList.isEmpty()){
             mainMenu.setFrOnlineList(null);
             return;
@@ -757,6 +758,7 @@ public class Client {
                 } else {
                     tmp.toFront();
                 }
+                break;
             }
         }   
     }
@@ -770,6 +772,7 @@ public class Client {
                     list.add(fr);
                     list.add(room);
                     sendObj(new DataPacket(SEND_UPDATE_ROOM, list));
+                    break;
                 }
             }
         } catch (IOException ex) {
@@ -786,6 +789,7 @@ public class Client {
                     list.add(acc);
                     list.add(room);
                     sendObj(new DataPacket(SEND_UPDATE_ROOM, list));
+                    break;
                 }
             }
         } catch (IOException ex) {
@@ -818,6 +822,7 @@ public class Client {
         for(Room r: roomList){
             if(r.getId()== room.getId()){
                 listChatRoomView.remove(r.getId());
+                break;
             }
         }   
     }
