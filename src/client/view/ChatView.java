@@ -190,8 +190,8 @@ public class ChatView extends javax.swing.JFrame{
     private void selectFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectFileActionPerformed
         // TODO add your handling code here:
         String path = getFile();
-        if(path != null)
-            controller.fileHandler.sendFile(path, receiver);
+//        if(path != null)
+//            controller.fileHandler.sendFile(path, receiver);
     }//GEN-LAST:event_selectFileActionPerformed
 
     private void showFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showFileActionPerformed
