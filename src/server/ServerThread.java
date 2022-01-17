@@ -134,7 +134,7 @@ public class ServerThread implements Runnable{
         
         public void writeObj(DataPacket data) throws IOException{
             oos = new ObjectOutputStream(clientSocket.getOutputStream());
-            log("Server: " + data.getCode());
+            log("Server to Client "+ clientNumber + ": " + data.getCode());
             oos.writeObject(data);
             oos.flush();           
         }

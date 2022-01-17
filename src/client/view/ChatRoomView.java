@@ -193,11 +193,6 @@ public class ChatRoomView extends javax.swing.JFrame {
         });
 
         addMemMenu.setText("Cài đặt");
-        addMemMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addMemMenuActionPerformed(evt);
-            }
-        });
 
         jMenuItem1.setText("Thêm mới");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
@@ -453,10 +448,6 @@ public class ChatRoomView extends javax.swing.JFrame {
         if(i == 0)
             controller.leaveRoom(room);
     }//GEN-LAST:event_leaveMenuActionPerformed
-
-    private void addMemMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addMemMenuActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_addMemMenuActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:

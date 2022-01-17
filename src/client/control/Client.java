@@ -597,6 +597,8 @@ public class Client {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+        } else{
+            return;
         }
     }
     
