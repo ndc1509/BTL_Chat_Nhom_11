@@ -153,7 +153,7 @@ public class ServerThread implements Runnable{
                             this.account = acc;
                             writeObj(new DataPacket(LOGIN_SUCCESS, account)); 
                             
-                            Server.getServerThreadBUS().boardcast(account, new DataPacket(SOMEONE_GO_ONLINE, account)); 
+                            Server.getServerThreadBUS().broadcast(account, new DataPacket(SOMEONE_GO_ONLINE, account)); 
                             
                             if(getOnlineAccounts()!=null)                               
                                 writeObj(new DataPacket(LIST_GLOBAL, getOnlineAccounts()));
@@ -188,7 +188,7 @@ public class ServerThread implements Runnable{
                 case (LOGOUT):
                     try {                                                                                                                                      
                         setOffline(account);
-                        Server.getServerThreadBUS().boardcast(account, new DataPacket(SOMEONE_GO_OFFLINE, account));
+                        Server.getServerThreadBUS().broadcast(account, new DataPacket(SOMEONE_GO_OFFLINE, account));
                         writeObj(new DataPacket(LOGOUT_SUCCESS, null));   
                         log(account.getUsername() + " đã ngắt kết nối đến server");                    
                         isClosed = true;
@@ -371,7 +371,7 @@ public class ServerThread implements Runnable{
                 case (SEND_CHAT_MESSAGE_GLOBAL): 
                     try{
                         Message msg = (Message) data.getObject();
-                        Server.getServerThreadBUS().boardcast(account, new DataPacket(MESSAGE_GLOBAL, msg));
+                        Server.getServerThreadBUS().broadcast(account, new DataPacket(MESSAGE_GLOBAL, msg));
                     }catch (Exception e){
                         e.printStackTrace();
                     }

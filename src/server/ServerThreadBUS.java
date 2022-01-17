@@ -79,7 +79,7 @@ public class ServerThreadBUS {
         }
     }
     
-    public void boardcast(Account acc, DataPacket data){  //gửi cho toàn bộ client trừ cái id
+    public void broadcast(Account acc, DataPacket data){  //gửi cho toàn bộ client trừ cái id
         for(ServerThread serverThread : Server.getServerThreadBUS().getListServerThreads()){
             if (serverThread.getAccountID()== acc.getId()) {
                 continue;
